@@ -1,0 +1,68 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        python-version: [ "3.10" ]
+        include:
+          - os: ubuntu-latest
+            firmware_name: FIRMWARE.IMG
+            boot_name: BOOT.BIN
+    steps:  
+    - name: Checkout the code
+      uses: actions/checkout@v3
+  
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install AtariST Toolkit Docker image
+      run: curl -sL https://github.com/diegoparrilla/atarist-toolkit-docker/releases/download/latest/linux.sh | bash
+
+    - name: Run - remove interactive
+      run: sed -i 's/-it//' /usr/local/bin/stcmd
+
+    - name: Run build and publish
+      run: ./build.sh ${GITHUB_WORKSPACE} release
+
+    - name: Upload the ROM image file
+      uses: svenstaro/upload-release-action@v2
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: dist/${{ matrix.firmware_name }}
+        asset_name: ${{ matrix.firmware_name }}
+        tag: ${{ github.ref }}
+        overwrite: true
+    - name: Upload the ROM image file to latest
+      uses: svenstaro/upload-release-action@v2
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: dist/${{ matrix.firmware_name }}
+        asset_name: ${{ matrix.firmware_name }}
+        tag: latest
+        overwrite: true
+    - name: Upload the trimmed ROM image file
+      uses: svenstaro/upload-release-action@v2
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: dist/${{ matrix.boot_name }}
+        asset_name: ${{ matrix.boot_name }}
+        tag: ${{ github.ref }}
+        overwrite: true
+    - name: Upload the trimmed ROM image file to latest
+      uses: svenstaro/upload-release-action@v2
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: dist/${{ matrix.boot_name }}
+        asset_name: ${{ matrix.boot_name }}
+        tag: latest
+        overwrite: true
+  

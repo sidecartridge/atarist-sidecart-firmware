@@ -30,8 +30,8 @@
 	dc.l $abcdef42 					; magic number
 first:
 	dc.l second
-	dc.l $08000000 + pre_auto		; TOS application and after GEMDOS init (before booting from disks)
-
+;	dc.l $08000000 + pre_auto		; TOS application and after GEMDOS init (before booting from disks)
+	dc.l $0
 	dc.l pre_auto
 	dc.w GEMDOS_TIME 				;time
 	dc.w GEMDOS_DATE 				;date
@@ -42,8 +42,6 @@ first:
 second:
 	dc.l 0							; if more programs, replace with the next reference.
 	dc.l $40000000					; TOS application
-;	dc.l $08000000					; Boot after GEMDOS init (before booting from disks)
-;	dc.l $48000000 + .run_romloader	; TOS application and after GEMDOS init (before booting from disks)
 	dc.l run_romloader
 	dc.w GEMDOS_TIME 				;time
 	dc.w GEMDOS_DATE 				;date
@@ -92,12 +90,6 @@ pre_auto:
     rts
 
 .runauto:
-	move.l    $432.w,a3		; Membot
-    move.l    $436.w,a4     ; Memtop
-    move.w    #$0300,sr   	; Set user mode
-    lea    -8(a4),sp
-    clr.l    (sp)
-    move.l    a3,4(sp)
 
 run_romloader:
 	lea romloader(pc),a6

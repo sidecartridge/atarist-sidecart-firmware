@@ -4,12 +4,14 @@
 
 	org $FA0000
 
-	dc.l $abcdef42 			; magic number
-	dc.l 0					; if more programs, replace with the next reference.
-	dc.l $40000000			; TOS application
+	dc.l $abcdef42 					; magic number
+	dc.l 0							; if more programs, replace with the next reference.
+;	dc.l $40000000					; TOS application
+;	dc.l $08000000					; Boot after GEMDOS init (before booting from disks)
+	dc.l $48000000 + .run_romloader	; TOS application and after GEMDOS init (before booting from disks)
 	dc.l .run_romloader
-	dc.w $a5CD ;time
-	dc.w $1e28 ;date
+	dc.w GEMDOS_TIME 				;time
+	dc.w GEMDOS_DATE 				;date
 	dc.l end_romloader - romloader
 	dc.b "ROMLOAD.TOS",0
 

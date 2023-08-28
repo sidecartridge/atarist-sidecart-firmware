@@ -31,7 +31,7 @@ jobs:
       run: sed -i 's/-it//' /usr/local/bin/stcmd
 
     - name: Run build and publish
-      run: .build.sh ${GITHUB_WORKSPACE} release
+      run: ./build.sh ${GITHUB_WORKSPACE} release
 
     - name: Upload the ROM image file
       uses: svenstaro/upload-release-action@v2

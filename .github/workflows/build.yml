@@ -26,4 +26,4 @@ jobs:
       run: sed -i 's/-it//' /usr/local/bin/stcmd
 
     - name: Run - Build executable and not publish
-      run: .build.sh ${GITHUB_WORKSPACE} all
+      run: ./build.sh ${GITHUB_WORKSPACE} all

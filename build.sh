@@ -1,4 +1,3 @@
-
 #!/bin/bash
 
 # Ensure an argument is provided
@@ -22,18 +21,10 @@ ST_WORKING_FOLDER=$working_folder stcmd make $build_type
 filename="./dist/FIRMWARE.IMG"
 
 # Copy the BOOT.BIN file to a ROM size file for testing
-cp ./dist/BOOT.BIN $filename
+ST_WORKING_FOLDER=$working_folder stcmd cp ./dist/BOOT.BIN $filename
 
-# Determine the operating system and get the file size accordingly
-OS=$(uname)
-if [ "$OS" == "Linux" ]; then
-    filesize=$(stat -c %s "$filename")
-elif [ "$OS" == "Darwin" ]; then  # macOS's UNIX name is Darwin
-    filesize=$(stat -f%z "$filename")
-else
-    echo "Unsupported operating system."
-    exit 4
-fi
+# Determine the file size accordingly
+filesize=$(ST_WORKING_FOLDER=$working_folder stcmd stat -c %s "$filename")
 
 # Size for 64Kbytes in bytes
 targetsize=$((64 * 1024))
@@ -45,7 +36,7 @@ if [ "$filesize" -gt "$targetsize" ]; then
 fi
 
 # Resize the file to 64Kbytes
-truncate -s $targetsize $filename
+ST_WORKING_FOLDER=$working_folder stcmd truncate -s $targetsize $filename
 
 if [ $? -ne 0 ]; then
     echo "Failed to resize the file."

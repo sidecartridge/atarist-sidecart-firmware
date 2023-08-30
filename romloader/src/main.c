@@ -185,8 +185,10 @@ static int run()
 
     int num_files = -1;
     __uint32_t file_list_mem = FILE_LIST_START_ADDRESS;
-    printf("Reading file list from memory address: 0x%08X\r\n", file_list_mem);
 
+#ifdef _DEBUG
+    printf("Reading file list from memory address: 0x%08X\r\n", file_list_mem);
+#endif
     char *file_array = read_files_from_memory((__uint8_t *)file_list_mem);
 
     if (!file_array)
@@ -203,14 +205,8 @@ static int run()
         int index = 1; // Index counter
         char *current_ptr = file_array;
 
-        while (1)
+        while (index <= num_files)
         {
-            // If we encounter two consecutive 0x00 bytes, it means we're at the end of the list
-            if (*current_ptr == 0x00 && *(current_ptr + 1) == 0x00)
-            {
-                break;
-            }
-
             // Print the index number
             printf("%d. ", index++);
 
@@ -260,10 +256,13 @@ static int run()
 #ifdef _DEBUG
     getchar();
 #else
+    char ch;
     while (1)
     {
-        getchar();
-    };
+        ch = Crawcin();
+        if (ch == 27) // ESC key ASCII value
+            break;
+    }
 #endif
 
     restoreResolutionAndPalette(&screenContext);

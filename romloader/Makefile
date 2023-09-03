@@ -58,9 +58,25 @@ main.o: prepare
 screen.o: prepare
 	$(CC) $(CFLAGS) $(SOURCES_DIR)/screen.c -o $(BUILD_DIR)/screen.o
 
-main: main.o screen.o
+romselector.o: prepare
+	$(CC) $(CFLAGS) $(SOURCES_DIR)/romselector.c -o $(BUILD_DIR)/romselector.o
+
+config.o: prepare
+	$(CC) $(CFLAGS) $(SOURCES_DIR)/config.c -o $(BUILD_DIR)/config.o
+
+reset.o: prepare
+	$(CC) $(CFLAGS) $(SOURCES_DIR)/reset.c -o $(BUILD_DIR)/reset.o
+
+helper.o: prepare
+	$(CC) $(CFLAGS) $(SOURCES_DIR)/helper.c -o $(BUILD_DIR)/helper.o
+
+main: main.o screen.o romselector.o config.o reset.o helper.o
 	$(CC) $(LIBCMINI)/lib/crt0.o \
 		  $(BUILD_DIR)/screen.o \
+		  $(BUILD_DIR)/romselector.o \
+		  $(BUILD_DIR)/config.o \
+		  $(BUILD_DIR)/reset.o \
+		  $(BUILD_DIR)/helper.o \
 		  $(BUILD_DIR)/main.o \
 		  -o $(BUILD_DIR)/$(EXE) $(LINKFLAGS);
 

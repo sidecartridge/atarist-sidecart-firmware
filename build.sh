@@ -11,11 +11,12 @@ if [ -z "$2" ]; then
     exit 1
 fi
 
+cp -f version.txt ./configurator/version.txt
 
 working_folder=$1
 build_type=$2
 
-ST_WORKING_FOLDER=$working_folder/romloader stcmd make $build_type
+ST_WORKING_FOLDER=$working_folder/configurator stcmd make $build_type
 ST_WORKING_FOLDER=$working_folder stcmd make $build_type
 
 filename="./dist/FIRMWARE.IMG"

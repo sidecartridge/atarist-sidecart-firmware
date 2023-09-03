@@ -35,17 +35,17 @@ first:
 	dc.l pre_auto
 	dc.w GEMDOS_TIME 				;time
 	dc.w GEMDOS_DATE 				;date
-	dc.l run_romloader - pre_auto
+	dc.l run_configurator - pre_auto
 	dc.b "AUTOFIRM",0
     even
 
 second:
 	dc.l 0							; if more programs, replace with the next reference.
 	dc.l $40000000					; TOS application
-	dc.l run_romloader
+	dc.l run_configurator
 	dc.w GEMDOS_TIME 				;time
 	dc.w GEMDOS_DATE 				;date
-	dc.l end_romloader - romloader
+	dc.l end_configurator - configurator
 	dc.b "ROMLOAD.TOS",0
 
 	even
@@ -91,9 +91,9 @@ pre_auto:
 
 .runauto:
 
-run_romloader:
-	lea romloader(pc),a6
-	move.w #((end_romloader - romloader)/4),d2
+run_configurator:
+	lea configurator(pc),a6
+	move.w #((end_configurator - configurator)/4),d2
 ;  bra.s common
 
 ;run2  lea thefirdc(pc),a6
@@ -182,15 +182,15 @@ run_romloader:
 .mess dc.b 13,10,"Not enough RAM available!",0
   even
 
-romloader:
-	incbin romloader/dist/ROMLOAD.TOS  
+configurator:
+	incbin configurator/dist/ROMLOAD.TOS  
 	even
-end_romloader:
+end_configurator:
 
    dc.l 0,0 ;gap
 
 ;thefirdc
-;  incbin romloader/dist/ROMLOAD.TOS
+;  incbin configurator/dist/ROMLOAD.TOS
 ;  
 ;   even
 ;   dc.l 0,0 ;gap

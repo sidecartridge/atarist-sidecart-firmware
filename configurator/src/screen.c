@@ -1,5 +1,5 @@
 #include <stdlib.h>
-#include "screen.h"
+#include "include/screen.h"
 
 void initScreenContext(ScreenContext *screenContext)
 {

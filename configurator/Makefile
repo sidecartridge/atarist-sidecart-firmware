@@ -6,7 +6,7 @@ ODIR = ./obj
 SOURCES_DIR = ./src
 BUILD_DIR = ./build
 DIST_DIR = ./dist
-EXE = ROMLOAD.TOS
+EXE = SIDECART.TOS
 
 # VASM PARAMETERS
 # _DEBUG: 1 to enable debug, 0 to disable them
@@ -52,11 +52,11 @@ prepare: clean
 clean-compile : clean main.o screen.o
 
 # All C files
-main.o: prepare
-	$(CC) $(CFLAGS) $(SOURCES_DIR)/main.c -o $(BUILD_DIR)/main.o
-
 screen.o: prepare
 	$(CC) $(CFLAGS) $(SOURCES_DIR)/screen.c -o $(BUILD_DIR)/screen.o
+
+helper.o: prepare
+	$(CC) $(CFLAGS) $(SOURCES_DIR)/helper.c -o $(BUILD_DIR)/helper.o
 
 romselector.o: prepare
 	$(CC) $(CFLAGS) $(SOURCES_DIR)/romselector.c -o $(BUILD_DIR)/romselector.o
@@ -67,16 +67,20 @@ config.o: prepare
 reset.o: prepare
 	$(CC) $(CFLAGS) $(SOURCES_DIR)/reset.c -o $(BUILD_DIR)/reset.o
 
-helper.o: prepare
-	$(CC) $(CFLAGS) $(SOURCES_DIR)/helper.c -o $(BUILD_DIR)/helper.o
+network.o: prepare
+	$(CC) $(CFLAGS) $(SOURCES_DIR)/network.c -o $(BUILD_DIR)/network.o
 
-main: main.o screen.o romselector.o config.o reset.o helper.o
+main.o: prepare
+	$(CC) $(CFLAGS) $(SOURCES_DIR)/main.c -o $(BUILD_DIR)/main.o
+
+main: screen.o helper.o network.o config.o reset.o romselector.o  main.o
 	$(CC) $(LIBCMINI)/lib/crt0.o \
 		  $(BUILD_DIR)/screen.o \
 		  $(BUILD_DIR)/romselector.o \
 		  $(BUILD_DIR)/config.o \
 		  $(BUILD_DIR)/reset.o \
 		  $(BUILD_DIR)/helper.o \
+		  $(BUILD_DIR)/network.o \
 		  $(BUILD_DIR)/main.o \
 		  -o $(BUILD_DIR)/$(EXE) $(LINKFLAGS);
 

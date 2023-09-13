@@ -36,7 +36,7 @@ first:
 	dc.w GEMDOS_TIME 				;time
 	dc.w GEMDOS_DATE 				;date
 	dc.l run_configurator - pre_auto
-	dc.b "AUTOFIRM",0
+	dc.b "AUTO",0
     even
 
 second:
@@ -46,7 +46,7 @@ second:
 	dc.w GEMDOS_TIME 				;time
 	dc.w GEMDOS_DATE 				;date
 	dc.l end_configurator - configurator
-	dc.b "ROMLOAD.TOS",0
+	dc.b "SIDECART.TOS",0
 
 	even
 
@@ -183,7 +183,7 @@ run_configurator:
   even
 
 configurator:
-	incbin configurator/dist/ROMLOAD.TOS  
+	incbin configurator/dist/SIDECART.TOS  
 	even
 end_configurator:
 

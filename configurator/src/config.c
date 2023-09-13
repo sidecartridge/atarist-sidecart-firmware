@@ -1,4 +1,4 @@
-#include "config.h"
+#include "include/config.h"
 
 static void print_table(ConfigData *configData)
 {
@@ -54,7 +54,7 @@ ConfigData load_all_entries()
         .count = 0,
     };
     currentAddress += sizeof(__uint32_t);
-    while (configData.count < MAX_ENTRIES)
+    while (1)
     {
         ConfigEntry entry;
         memcpy(&entry, (void *)currentAddress, sizeof(ConfigEntry));
@@ -172,6 +172,8 @@ __uint8_t configuration()
 
     please_wait("Loading configuration...", WAIT_TIME);
 
+    printf("\r\n");
+
     ConfigData configData = load_all_entries();
 
     while (1)
@@ -195,6 +197,7 @@ __uint8_t configuration()
             // Save the stuff to the flash
             send_command(SAVE_CONFIG, NULL, 0);
             please_wait("Saving configuration...", WAIT_TIME);
+            printf("\r\n");
             return 1; // Positive is OK
         }
 
@@ -223,6 +226,7 @@ __uint8_t configuration()
             break;
         }
         please_wait("Saving configuration...", WAIT_TIME);
+        printf("\r\n");
 
         free(input);
     }

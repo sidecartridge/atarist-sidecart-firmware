@@ -3,10 +3,11 @@
 
 #include <sys/types.h>
 #include <stdio.h>
+#include <osbind.h>
 
-#include "helper.h"
-#include "screen.h"
 #include "commands.h"
+#include "screen.h"
+#include "helper.h"
 
 __uint8_t rom_selector();
 

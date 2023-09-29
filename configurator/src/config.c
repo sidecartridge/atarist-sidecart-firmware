@@ -76,6 +76,8 @@ static char *read_input(__uint16_t type)
 {
     char buffer[MAX_STRING_VALUE_LENGTH + 2]; // +1 for '\0' and +1 to check overflow
     char *result = (char *)malloc(MAX_STRING_VALUE_LENGTH + 1);
+    int ch;
+    int index = 0;
 
     if (!result)
     {
@@ -98,18 +100,42 @@ static char *read_input(__uint16_t type)
     }
 
     while (1)
-    { // Repeat until valid input
-        fgets(buffer, sizeof(buffer), stdin);
-
-        // Check if the input was too long
-        if (buffer[strlen(buffer) - 1] != '\n')
+    {
+        // Repeat until valid input
+        while (1)
         {
-            printf("Input too long. Please try again.\r\n");
-            while (getchar() != '\n')
-                ; // Clear the input buffer
-            continue;
+            ch = getchar();
+            if (ch == 13)
+            {
+                // User pressed Enter
+                break;
+            }
+            else if (ch == 127 || ch == '\b')
+            {
+                // User pressed backspace
+                if (index > 0)
+                {
+                    // Move back one position in the buffer
+                    index--;
+                    // Optionally, move cursor back one position and overwrite with space
+                    printf(" \b");
+                    fflush(stdout);
+                }
+            }
+            else if (ch >= ' ')
+            {
+                // User entered a printable character
+                if (index < sizeof(buffer) - 1)
+                {
+                    buffer[index++] = (char)ch;
+                    fflush(stdout);
+                }
+            }
         }
-        buffer[strlen(buffer) - 1] = '\0'; // Remove newline character
+        for (int i = index; i < sizeof(buffer); i++)
+        {
+            buffer[i] = '\0';
+        }
 
         if (type == TYPE_INT)
         {

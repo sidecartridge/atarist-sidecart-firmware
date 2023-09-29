@@ -176,7 +176,43 @@ __uint8_t network_selector()
     if (wifiScanDataBuff->networks[network_number - 1].auth_mode > 0)
     {
         // Read the password
-        scanf("%31s", password); // Read up to 31 characters, leaving room for the null terminator
+        int ch;
+        int index = 0;
+        // Repeat until valid input
+        while (1)
+        {
+            ch = getchar();
+            if (ch == 13)
+            {
+                // User pressed Enter
+                break;
+            }
+            else if (ch == 127 || ch == '\b')
+            {
+                // User pressed backspace
+                if (index > 0)
+                {
+                    // Move back one position in the buffer
+                    index--;
+                    // Optionally, move cursor back one position and overwrite with space
+                    printf(" \b");
+                    fflush(stdout);
+                }
+            }
+            else if (ch >= ' ')
+            {
+                // User entered a printable character
+                if (index < sizeof(password) - 1)
+                {
+                    password[index++] = (char)ch;
+                    fflush(stdout);
+                }
+            }
+        }
+        for (int i = index; i < sizeof(password); i++)
+        {
+            password[i] = '\0';
+        }
         printf("\033KPassword:%s", password);
     }
 
@@ -193,7 +229,7 @@ __uint8_t network_selector()
 
     free(network_array);
 
-    return 1; // Positive is OK
+    return 0; // Return 0 to avoid to force a reset
 }
 
 __uint8_t roms_from_network_selector()

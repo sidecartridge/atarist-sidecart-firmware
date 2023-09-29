@@ -2,26 +2,37 @@
 #include "include/screen.h"
 #include "include/helper.h"
 #include "include/romselector.h"
+#include "include/floppyselector.h"
 #include "include/config.h"
 #include "include/network.h"
 #include "include/reset.h"
 
-#define EXIT_OPTION 0
-#define ROM_MICROSD_SELECTOR_OPTION 1
-#define ROM_NETWORK_SELECTOR_OPTION 2
-#define NETWORK_SELECTOR_OPTION 3
-#define CONFIGURATION_OPTION 4
-#define RESET_OPTION 5
-#define LAST_OPTION RESET_OPTION
+#define ROM_MICROSD_SELECTOR_OPTION '1'
+#define ROM_MICROSD_SELECTOR_OPTION_LINE 1
+#define ROM_NETWORK_SELECTOR_OPTION '2'
+#define ROM_NETWORK_SELECTOR_OPTION_LINE 2
+#define FLOPPY_MICROSD_SELECTOR_OPTION '3'
+#define FLOPPY_MICROSD_SELECTOR_OPTION_LINE 3
+#define NETWORK_SELECTOR_OPTION 'W'
+#define NETWORK_SELECTOR_OPTION_LINE FLOPPY_MICROSD_SELECTOR_OPTION_LINE + 2
+#define CONFIGURATION_OPTION 'C'
+#define CONFIGURATION_OPTION_LINE NETWORK_SELECTOR_OPTION_LINE + 1
+#define RESET_OPTION 'R'
+#define RESET_OPTION_LINE CONFIGURATION_OPTION_LINE + 1
+#define EXIT_OPTION 'E'
+#define EXIT_OPTION_LINE RESET_OPTION_LINE + 2
+#define LAST_OPTION RESET_OPTION_LINE
+
 #define MENU_ALIGN_X 10
 #define MENU_ALIGN_Y 4
 #define PROMT_ALIGN_X 7
 #define PROMT_ALIGN_Y 20
 #define MENU_CALLBACK_INTERVAL 10 // Every 10 seconds poll for the connection status
+#define ALLOWED_KEYS "123WCRE"    // Only these keys are allowed
 
 typedef struct
 {
-    int option;
+    char option;
     int line;
     bool connection; // Connection needed?
     bool networking; // Networking needed?
@@ -32,12 +43,13 @@ typedef void (*CallbackFunction)();
 
 // Option index, line, connection needed?, networking needed? description
 static const MenuItem menuItems[] = {
-    {ROM_MICROSD_SELECTOR_OPTION, ROM_MICROSD_SELECTOR_OPTION, false, false, "Emulate ROM image from microSD card"},
-    {ROM_NETWORK_SELECTOR_OPTION, ROM_NETWORK_SELECTOR_OPTION, true, true, "Emulate ROM image from Wi-Fi"},
-    {NETWORK_SELECTOR_OPTION, NETWORK_SELECTOR_OPTION, false, true, "Wi-Fi configuration"},
-    {CONFIGURATION_OPTION, CONFIGURATION_OPTION, false, false, "SidecarT configuration"},
-    {RESET_OPTION, RESET_OPTION, false, false, "Reset to default configuration"},
-    {EXIT_OPTION, 7, false, false, "Exit"}};
+    {ROM_MICROSD_SELECTOR_OPTION, ROM_MICROSD_SELECTOR_OPTION_LINE, false, false, "Emulate ROM image from microSD card"},
+    {ROM_NETWORK_SELECTOR_OPTION, ROM_NETWORK_SELECTOR_OPTION_LINE, true, true, "Emulate ROM image from Wi-Fi"},
+    {FLOPPY_MICROSD_SELECTOR_OPTION, FLOPPY_MICROSD_SELECTOR_OPTION_LINE, false, false, "Emulate Floppy image from microSD card (PREVIEW)"},
+    {NETWORK_SELECTOR_OPTION, NETWORK_SELECTOR_OPTION_LINE, false, true, "Wi-Fi configuration"},
+    {CONFIGURATION_OPTION, CONFIGURATION_OPTION_LINE, false, false, "SidecarT configuration"},
+    {RESET_OPTION, RESET_OPTION_LINE, false, false, "Reset to default configuration"},
+    {EXIT_OPTION, EXIT_OPTION_LINE, false, false, "Exit"}};
 
 static __int8_t get_number_active_wait(CallbackFunction callback)
 {
@@ -49,15 +61,16 @@ static __int8_t get_number_active_wait(CallbackFunction callback)
         if (Cconis())
         {
             key = Crawcin();
-            if (key == '0')
+            // upper key case
+            if ((key >= 'a') && (key <= 'z'))
             {
-                return EXIT_OPTION;
+                key -= 32;
             }
-            __int8_t feature = key - '0';
-            if ((feature > 0) && (feature <= LAST_OPTION))
+            // only allowed keys
+            if (strchr(ALLOWED_KEYS, key) != NULL)
             {
                 printf("%c", key);
-                return feature;
+                return (__int8_t)key;
             }
         }
         if (callback != NULL)
@@ -73,7 +86,7 @@ static __int8_t get_number_active_wait(CallbackFunction callback)
                         if (!(menuItems[i].networking) || !(menuItems[i].connection) || (connection_data->status == CONNECTED_WIFI_IP))
                         {
                             locate(MENU_ALIGN_X, MENU_ALIGN_Y + menuItems[i].line);
-                            printf("%i. %s", menuItems[i].option, menuItems[i].description);
+                            printf("%c. %s", menuItems[i].option, menuItems[i].description);
                         }
                     }
                 }
@@ -147,6 +160,9 @@ static int run()
         case ROM_NETWORK_SELECTOR_OPTION:
             feature = roms_from_network_selector();
             break;
+        case FLOPPY_MICROSD_SELECTOR_OPTION:
+            feature = floppy_selector();
+            break;
         case NETWORK_SELECTOR_OPTION:
             feature = network_selector();
             break;
@@ -156,26 +172,44 @@ static int run()
         case RESET_OPTION:
             feature = reset();
             break;
+        case EXIT_OPTION:
+            restoreResolutionAndPalette(&screenContext);
+            return 0;
+            break;
         default:
             break;
         }
     }
     locate(0, 24);
-    printf("\033KNow you can reset or power cycle your Atari ST computer.\r\n");
+    printf("\033KPress any key to reset your Atari ST computer.\r\n");
 
 #ifdef _DEBUG
     getchar();
+    restoreResolutionAndPalette(&screenContext);
 #else
     char ch;
     while (1)
     {
         ch = Crawcin();
-        if (ch == 27) // ESC key ASCII value
+        if (ch == 27)
+        {
+            // ESC key ASCII value
             break;
+        }
+        else
+        {
+            typedef void (*tFunction)(void);
+
+            static const kWarmStartAddress_U32 = 0xE00000ul;
+            tFunction JumpToTOS;
+            __uint32_t myJumpAddress_U32;
+
+            myJumpAddress_U32 = (*(volatile __uint32_t *)(kWarmStartAddress_U32 + sizeof(__uint32_t))); /* slot #0 is occupied by SSP	*/
+            JumpToTOS = (tFunction)myJumpAddress_U32;
+            JumpToTOS();
+        }
     }
 #endif
-
-    restoreResolutionAndPalette(&screenContext);
 }
 
 //================================================================
@@ -185,4 +219,6 @@ int main(int argc, char *argv[])
     // switching to supervisor mode and execute run()
     // needed because of direct memory access for reading/writing the palette
     Supexec(&run);
+
+    Pterm(0);
 }

@@ -28,18 +28,18 @@
 	org $FA0000
 
 	dc.l $abcdef42 					; magic number
-first:
-	dc.l second
+;first:
+;	dc.l second
 ;	dc.l $08000000 + pre_auto		; TOS application and after GEMDOS init (before booting from disks)
-	dc.l $0
-	dc.l pre_auto
-	dc.w GEMDOS_TIME 				;time
-	dc.w GEMDOS_DATE 				;date
-	dc.l run_configurator - pre_auto
-	dc.b "AUTO",0
-    even
+;	dc.l $0
+;	dc.l pre_auto
+;	dc.w GEMDOS_TIME 				;time
+;	dc.w GEMDOS_DATE 				;date
+;	dc.l run_configurator - pre_auto
+;	dc.b "AUTOSEL",0
+;   even
 
-second:
+first:
 	dc.l 0							; if more programs, replace with the next reference.
 	dc.l $40000000					; TOS application
 	dc.l run_configurator
@@ -50,46 +50,27 @@ second:
 
 	even
 
-;second
-;  dc.l third
-;  dc.l 0
-;  dc.l run2
-;  dc.w $b149 ;time
-;  dc.w $1e51 ;date
-;  dc.l 7961
-;  dc.b "ROMLOAD2.TOS",0
-;  even
-;
-;third
-;  dc.l 0
-;  dc.l 0
-;  dc.l coac
-;  dc.w $a5CD ;time
-;  dc.w $1e28 ;date
-;  dc.l 22568
-;  dc.b "ROMLOAD3.TOS",0
-;  even
-
-pre_auto:
+;pre_auto:
 ; Add a slight delay before reading the keyboard
-	moveq #58,d7
-.ddell:
-    move.w #37,-(sp)
-    trap #14
-    addq.l #2,sp
-    dbf d7,.ddell
+;	moveq #58,d7
+;.ddell:
+;    move.w #37,-(sp)			; XBIOS Vsync wait
+;    trap #14
+;    addq.l #2,sp
+;    dbf d7,.ddell
 
 ; Now check the left shift key. If pressed, exit.
-    pea $BFFFF
-    trap #13
-    addq.l #4,sp
+;	move.w #-1, -(sp)			; Read all key status
+;    move.w #$b, -(sp)			; XBIOS Get shift key status
+;    trap #13
+;    addq.l #4,sp
 
-    btst #1,d0
-    beq.s .runauto
+;    btst #1,d0
+;    beq run_configurator
 
-    rts
+;    rts
 
-.runauto:
+;	even
 
 run_configurator:
 	lea configurator(pc),a6

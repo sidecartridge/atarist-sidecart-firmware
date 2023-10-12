@@ -46,6 +46,8 @@ __uint8_t rom_selector()
 
     send_command(LOAD_ROM, &rom_number, 2);
 
+    please_wait("Loading ROM. Wait until the led in the board blinks a 'E' or 'D' in morse.", WAIT_TIME);
+
     printf("\033KROM file loaded. ");
 
     return 1; // Positive is OK

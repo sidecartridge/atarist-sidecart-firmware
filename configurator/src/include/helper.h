@@ -69,12 +69,12 @@ static __uint16_t protocol_example[] = {
 #define KEY_ENTER 0x1C000D
 #define KEY_ESC 0x1001B
 
-#define PRINT_APP_HEADER(version)                                                                                       \
-    do                                                                                                                  \
-    {                                                                                                                   \
-        clearHome();                                                                                                    \
-        locate(0, 0);                                                                                                   \
-        printf("\033pATARI ST SIDECART CONFIGURATOR. V%s - (C)2023 Diego Parrilla / @sidecartridge\033q\r\n", version); \
+#define PRINT_APP_HEADER(version)                                                                                      \
+    do                                                                                                                 \
+    {                                                                                                                  \
+        clearHome();                                                                                                   \
+        locate(0, 0);                                                                                                  \
+        printf("\033pATARI ST SIDECART CONFIGURATOR v%s - (C)2023 Diego Parrilla / @sidecartridge\033q\r\n", version); \
     } while (0)
 
 int get_number_within_range(char *prompt, __uint8_t num_items, __uint8_t first_value, char cancel_char, char save_char);

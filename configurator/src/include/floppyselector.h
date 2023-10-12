@@ -9,6 +9,7 @@
 #include "screen.h"
 #include "helper.h"
 
-__uint8_t floppy_selector();
+__uint8_t floppy_selector_ro();
+__uint8_t floppy_selector_rw();
 
 #endif /* FLOPPYSELECTOR_H_ */

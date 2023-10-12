@@ -382,7 +382,6 @@ int display_paginated_content(char *file_array, int num_files, int page_size, ch
                 selected_rom = current_index + 1;
                 return selected_rom;
             case KEY_ESC:
-                printf("KEY PRESSED");
                 return -1;
             default:
                 // Handle other keys

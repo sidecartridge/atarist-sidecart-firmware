@@ -3,7 +3,7 @@
 //================================================================
 // Floppy selector
 
-__uint8_t floppy_selector()
+static __uint8_t floppy_selector(mode_t floppy_command)
 {
     PRINT_APP_HEADER(VERSION);
 
@@ -30,7 +30,7 @@ __uint8_t floppy_selector()
         // Back to main menu
         return 0; // 0 is go to menu
     }
-    __int16_t floppy_number = display_paginated_content(file_array, get_file_count(file_array), ELEMENTS_PER_PAGE, "Floppy images");
+    __int16_t floppy_number = display_paginated_content(file_array, get_file_count(file_array), ELEMENTS_PER_PAGE, floppy_command == LOAD_FLOPPY_RO ? "Floppy images (Read Only)" : "Floppy images (Read/Write)");
 
     if (floppy_number <= 0)
     {
@@ -44,9 +44,21 @@ __uint8_t floppy_selector()
 
     print_file_at_index(file_array, floppy_number - 1, 0);
 
-    send_command(LOAD_FLOPPY, &floppy_number, 2);
+    send_command(floppy_command, &floppy_number, 2);
+
+    please_wait("Loading floppy. Wait until the led in the board blinks a 'F' in morse.", WAIT_TIME);
 
     printf("\033KFloppy image file loaded. ");
 
     return 1; // Positive is OK
+}
+
+__uint8_t floppy_selector_ro(void)
+{
+    return floppy_selector(LOAD_FLOPPY_RO);
+}
+
+__uint8_t floppy_selector_rw(void)
+{
+    return floppy_selector(LOAD_FLOPPY_RW);
 }

@@ -38,12 +38,14 @@ static __uint8_t get_network_count(char *file_array)
     return count;
 }
 
+__uint16_t force_connection_status(bool show_bar)
+{
+    previous_connection_status = 99;
+    //    return get_connection_status(show_bar);
+}
+
 __uint16_t get_connection_status(bool show_bar)
 {
-    if (connection_data != NULL)
-    {
-        previous_connection_status = connection_data->status;
-    }
     send_command(GET_IP_DATA, NULL, (__uint16_t)0);
 
     locate(0, 24);
@@ -121,6 +123,7 @@ __uint16_t get_connection_status(bool show_bar)
             printf("\033q");
         }
     }
+    previous_connection_status = connection_data->status;
     return connection_data->status;
 }
 
@@ -298,6 +301,8 @@ __uint8_t roms_from_network_selector()
     print_file_at_index(file_array, rom_number - 1, 0);
 
     send_command(DOWNLOAD_ROM, &rom_number, 2);
+
+    please_wait("Downloading ROM. Wait until the led in the board blinks a 'E' or 'D' in morse.", WAIT_TIME);
 
     printf("\033KROM file downloaded. ");
 

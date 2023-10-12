@@ -1,5 +1,7 @@
 #include "include/config.h"
 
+static bool is_delay_option = false;
+
 static void print_table(ConfigData *configData)
 {
     printf("+----+----------------------+------------------------------------------+-------+\r\n");
@@ -255,5 +257,50 @@ __uint8_t configuration()
         printf("\r\n");
 
         free(input);
+
+        return 0; // 0 means back to main menu, do not reboot
     }
+}
+
+void read_config()
+{
+    send_command(GET_CONFIG, NULL, 0);
+
+    please_wait_silent(WAIT_TIME / 2);
+
+    ConfigData configData = load_all_entries();
+
+    for (size_t i = 0; i < configData.count; i++)
+    {
+        if (strcmp(configData.entries[i].key, "DELAY_ROM_EMULATION") == 0)
+        {
+            is_delay_option = strcmp(configData.entries[i].value, "true") == 0;
+        }
+    }
+}
+
+bool is_delay_option_enabled(void)
+{
+    return is_delay_option;
+}
+
+__uint8_t toggle_delay_option(void)
+{
+    PRINT_APP_HEADER(VERSION);
+
+    printf("\r\n");
+
+    is_delay_option = !is_delay_option;
+    ConfigEntry *entry = (ConfigEntry *)malloc(sizeof(ConfigEntry));
+    strncpy(entry->key, "DELAY_ROM_EMULATION", MAX_STRING_VALUE_LENGTH);
+    strncpy(entry->value, is_delay_option ? "true" : "false", MAX_STRING_VALUE_LENGTH);
+    entry->dataType = TYPE_BOOL;
+
+    send_command(PUT_CONFIG_BOOL, entry, sizeof(ConfigEntry));
+
+    free(entry);
+
+    please_wait("Toggling delay parameter...", WAIT_TIME);
+
+    return 0; // Do not reset computer after toggling delay option
 }

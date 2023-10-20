@@ -28,18 +28,17 @@
 	org $FA0000
 
 	dc.l $abcdef42 					; magic number
-;first:
-;	dc.l second
-;	dc.l $08000000 + pre_auto		; TOS application and after GEMDOS init (before booting from disks)
-;	dc.l $0
-;	dc.l pre_auto
-;	dc.w GEMDOS_TIME 				;time
-;	dc.w GEMDOS_DATE 				;date
-;	dc.l run_configurator - pre_auto
-;	dc.b "AUTOSEL",0
-;   even
-
 first:
+	dc.l second
+	dc.l $08000000 + pre_auto		; TOS application and after GEMDOS init (before booting from disks)
+	dc.l pre_auto
+	dc.w GEMDOS_TIME 				;time
+	dc.w GEMDOS_DATE 				;date
+	dc.l run_configurator - pre_auto
+	dc.b "AUTOSEL",0
+    even
+
+second:
 	dc.l 0							; if more programs, replace with the next reference.
 	dc.l $40000000					; TOS application
 	dc.l run_configurator
@@ -50,30 +49,70 @@ first:
 
 	even
 
-;pre_auto:
+pre_auto:
+; Print welcome message
+	pea welcome(pc)
+	move.w #9,-(sp)
+	trap #1
+	addq.l #6,sp
+
+	; Print message to load GEM
+	pea to_gem(pc)
+	move.w #9,-(sp)
+	trap #1
+	addq.l #6,sp
+
+    lea countdown(pc),a6
 ; Add a slight delay before reading the keyboard
-;	moveq #58,d7
-;.ddell:
-;    move.w #37,-(sp)			; XBIOS Vsync wait
-;    trap #14
-;    addq.l #2,sp
-;    dbf d7,.ddell
+	move.w #5,d6
+
+.print_loop:
+	move.l a6, -(sp)
+	addq.l #3,a6
+
+	move.w #9,-(sp)
+	trap #1
+	addq.l #6,sp
+
+	move.w #50,d7
+.ddell:
+    move.w #37,-(sp)			; XBIOS Vsync wait
+    trap #14
+    addq.l #2,sp
+    dbf d7,.ddell
 
 ; Now check the left shift key. If pressed, exit.
-;	move.w #-1, -(sp)			; Read all key status
-;    move.w #$b, -(sp)			; XBIOS Get shift key status
-;    trap #13
-;    addq.l #4,sp
+	move.w #-1, -(sp)			; Read all key status
+    move.w #$b, -(sp)			; XBIOS Get shift key status
+    trap #13
+    addq.l #4,sp
 
-;    btst #1,d0
-;    beq run_configurator
+    btst #1,d0
+    bne.s adjust_mem
 
-;    rts
+	dbf d6, .print_loop
 
-;	even
+	; If we get here, continue loading GEM
+    rts
+
+	even
+
+adjust_mem:
+	move.l    $432.w,a3		; Membot
+    move.l    $436.w,a4		; Memtop
+    move.w    #$0300,sr		; Set user mode
+
+    lea   	 -8(a4),sp		; Trick the system into
+    clr.l    (sp)
+    move.l	a3,4(sp)	
 
 run_configurator:
-	lea configurator(pc),a6
+
+;	move.w #1,-(sp) ;wait keypress
+;	trap #1
+;	addq.l #6,sp
+
+   	lea configurator(pc),a6
 	move.w #((end_configurator - configurator)/4),d2
 ;  bra.s common
 
@@ -95,10 +134,6 @@ run_configurator:
 	add.l 6(a6),d1 		;data len
 	add.l 10(a6),d1 	;bss len
 	add.l #512,d1 		;for basepage+reserve
-  
-; d1 now holds needed ram length
-	cmp.l d1,d0
-	bmi.s .noram
 
 	lea 256(a0),a1
 	move.l a1,8(a0)  	;txt beg (startadress of prg)  
@@ -146,21 +181,22 @@ run_configurator:
 	move.l d0,a1
 
 	jmp (a1)
-   
-.noram:
-	pea .mess(pc)
-	move.w #9,-(sp)
-	trap #1
-	addq.l #6,sp
 
-	move.w #1,-(sp) ;wait keypress
-	trap #1
-	addq.l #6,sp
-		
-	clr.w -(sp)
-	trap #1 ;exit
-  
-.mess dc.b 13,10,"Not enough RAM available!",0
+welcome:
+	dc.b "Press LEFT SHIFT to autoboot the",13,10,"SidecarT Configurator.",13,10,0
+
+to_gem:
+	dc.b 13,10,"Or GEM will load in ",0
+
+countdown:
+	dc.b "5",8,0
+	dc.b "4",8,0
+	dc.b "3",8,0
+	dc.b "2",8,0
+	dc.b "1",8,0
+	dc.b "0",8,0
+
+
   even
 
 configurator:

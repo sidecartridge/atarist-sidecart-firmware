@@ -34,7 +34,7 @@
 #define MENU_ALIGN_Y 4
 #define PROMT_ALIGN_X 7
 #define PROMT_ALIGN_Y 20
-#define MENU_CALLBACK_INTERVAL 10 // Every 10 seconds poll for the connection status
+#define MENU_CALLBACK_INTERVAL 3  // Every 3 seconds poll for the connection status
 #define ALLOWED_KEYS "12345DWCRE" // Only these keys are allowed
 
 typedef struct

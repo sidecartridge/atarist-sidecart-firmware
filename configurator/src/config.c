@@ -50,7 +50,7 @@ static void print_table(ConfigData *configData)
 ConfigData load_all_entries()
 {
     __uint8_t count = 0;
-    __uint32_t currentAddress = CONFIG_START_ADDRESS;
+    __uint32_t currentAddress = CONFIG_START_ADDRESS + sizeof(__uint32_t);
     ConfigData configData = {
         .magic = *((volatile __uint32_t *)currentAddress),
         .count = 0,
@@ -196,9 +196,9 @@ __uint8_t configuration()
 
     printf("\r\n");
 
-    send_command(GET_CONFIG, NULL, 0);
+    printf("Loading configuration...");
 
-    please_wait("Loading configuration...", WAIT_TIME);
+    send_sync_command(GET_CONFIG, NULL, 0, 10, true);
 
     printf("\r\n");
 
@@ -209,24 +209,14 @@ __uint8_t configuration()
         print_table(&configData);
 
         char *prompt;
-        asprintf(&prompt, "Enter the parameter to modify (1 to %d), [C]ancel or [S]ave: ", configData.count);
+        asprintf(&prompt, "Enter the parameter to modify (1 to %d) or [C]ancel: ", configData.count);
 
-        int param_index = get_number_within_range(prompt, configData.count, 1, 'C', 'S');
+        int param_index = get_number_within_range(prompt, configData.count, 1, 'C');
 
         if (param_index <= 0)
         {
             // Back to main menu
             return 0; // 0 means back to main menu
-        }
-
-        if (param_index == configData.count + 1)
-        {
-            // Save button was pressed
-            // Save the stuff to the flash
-            send_command(SAVE_CONFIG, NULL, 0);
-            please_wait("Saving configuration...", WAIT_TIME);
-            printf("\r\n");
-            return 1; // Positive is OK
         }
 
         param_index = param_index - 1;
@@ -238,22 +228,25 @@ __uint8_t configuration()
         printf("The input is: %s\r\n", input);
         strncpy(configData.entries[param_index].value, input, MAX_STRING_VALUE_LENGTH);
 
+        printf("Saving configuration...");
+
         switch (configData.entries[param_index].dataType)
         {
         case TYPE_INT:
-            send_command(PUT_CONFIG_INTEGER, &configData.entries[param_index], sizeof(ConfigEntry));
+            send_sync_command(PUT_CONFIG_INTEGER, &configData.entries[param_index], sizeof(ConfigEntry), 10, false);
             break;
         case TYPE_BOOL:
-            send_command(PUT_CONFIG_BOOL, &configData.entries[param_index], sizeof(ConfigEntry));
+            send_sync_command(PUT_CONFIG_BOOL, &configData.entries[param_index], sizeof(ConfigEntry), 10, false);
             break;
         case TYPE_STRING:
-            send_command(PUT_CONFIG_STRING, &configData.entries[param_index], sizeof(ConfigEntry));
+            send_sync_command(PUT_CONFIG_STRING, &configData.entries[param_index], sizeof(ConfigEntry), 10, false);
             break;
         default:
             printf("Unknown data type.\r\n");
             break;
         }
-        please_wait("Saving configuration...", WAIT_TIME);
+
+        send_sync_command(SAVE_CONFIG, NULL, 0, 10, true);
         printf("\r\n");
 
         free(input);
@@ -264,9 +257,7 @@ __uint8_t configuration()
 
 void read_config()
 {
-    send_command(GET_CONFIG, NULL, 0);
-
-    please_wait_silent(WAIT_TIME / 2);
+    send_sync_command(GET_CONFIG, NULL, 0, 10, false);
 
     ConfigData configData = load_all_entries();
 
@@ -296,11 +287,9 @@ __uint8_t toggle_delay_option(void)
     strncpy(entry->value, is_delay_option ? "true" : "false", MAX_STRING_VALUE_LENGTH);
     entry->dataType = TYPE_BOOL;
 
-    send_command(PUT_CONFIG_BOOL, entry, sizeof(ConfigEntry));
+    send_sync_command(PUT_CONFIG_BOOL, entry, sizeof(ConfigEntry), 10, false);
 
     free(entry);
-
-    please_wait("Toggling delay parameter...", WAIT_TIME);
 
     return 0; // Do not reset computer after toggling delay option
 }

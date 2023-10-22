@@ -9,14 +9,14 @@ __uint8_t rom_selector()
 
     printf("\r\n");
 
-    send_command(LIST_ROMS, NULL, 0);
+    printf("Loading available ROM images...");
 
-    please_wait("Loading available ROM images...", WAIT_TIME);
+    send_sync_command(LIST_ROMS, NULL, 0, 10, true);
 
     printf("\r\n");
 
     int num_files = -1;
-    __uint32_t file_list_mem = FILE_LIST_START_ADDRESS;
+    __uint32_t file_list_mem = FILE_LIST_START_ADDRESS + sizeof(__uint32_t);
 
 #ifdef _DEBUG
     printf("Reading file list from memory address: 0x%08X\r\n", file_list_mem);
@@ -30,7 +30,7 @@ __uint8_t rom_selector()
         // Back to main menu
         return 0; // 0 is go to menu
     }
-    __int16_t rom_number = display_paginated_content(file_array, get_file_count(file_array), ELEMENTS_PER_PAGE, "ROM images");
+    __int16_t rom_number = display_paginated_content(file_array, get_file_count(file_array), ELEMENTS_PER_PAGE, "ROM images", NULL);
 
     if (rom_number <= 0)
     {
@@ -44,11 +44,11 @@ __uint8_t rom_selector()
 
     print_file_at_index(file_array, rom_number - 1, 0);
 
-    send_command(LOAD_ROM, &rom_number, 2);
+    printf("Loading ROM. Wait until the led in the board blinks a 'E' or 'D' in morse...");
 
-    please_wait("Loading ROM. Wait until the led in the board blinks a 'E' or 'D' in morse.", WAIT_TIME);
+    send_sync_command(LOAD_ROM, &rom_number, 2, 30, true);
 
-    printf("\033KROM file loaded. ");
+    printf("\r\033KROM file loaded. ");
 
     return 1; // Positive is OK
 }

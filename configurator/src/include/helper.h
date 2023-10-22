@@ -35,12 +35,17 @@ static __uint16_t protocol_example[] = {
     0x9ABC,
     0xDEF0,
 };
+static __uint32_t random_seed = 0x12345678;
+static __uint32_t random_number = 0x0;
 #define ROM4_MEMORY_START &protocol_example[0]
 #define ROM3_MEMORY_START &protocol_example[0]
+#define RANDOM_SEED_ADDRESS &random_seed
+#define RANDOM_NUMBER_ADDRESS &random_number
 #define FILE_LIST_START_ADDRESS &file_list_example[0]
 #define NETWORK_FILE_LIST_START_ADDRESS &network_file_list_example[0]
 #define CONFIG_START_ADDRESS &config_data_example
 #define NETWORK_START_ADDRESS &wifi_scan_data_example
+#define DB_FILES_LIST_START_ADDRESS &network_file_list_example[0]
 #define CONNECTION_STATUS_START_ADDRESS &connection_data_example
 #define PROTOCOL_HEADER 0x0000
 #define WAIT_TIME 0
@@ -50,8 +55,11 @@ static __uint16_t protocol_example[] = {
 #else
 #define ROM4_MEMORY_START 0xFA0000
 #define ROM3_MEMORY_START 0xFB0000
+#define RANDOM_SEED_ADDRESS (ROM3_MEMORY_START - EXCHANGE_BUFFER_SIZE - RANDOM_NUMBER_SIZE)
+#define RANDOM_NUMBER_ADDRESS (ROM3_MEMORY_START - EXCHANGE_BUFFER_SIZE)
 #define FILE_LIST_START_ADDRESS (ROM3_MEMORY_START - EXCHANGE_BUFFER_SIZE)
 #define NETWORK_FILE_LIST_START_ADDRESS (ROM3_MEMORY_START - EXCHANGE_BUFFER_SIZE)
+#define DB_FILES_LIST_START_ADDRESS (RANDOM_NUMBER_ADDRESS + RANDOM_NUMBER_SIZE)
 #define CONFIG_START_ADDRESS (ROM3_MEMORY_START - EXCHANGE_BUFFER_SIZE)
 #define NETWORK_START_ADDRESS (ROM3_MEMORY_START - EXCHANGE_BUFFER_SIZE)
 #define CONNECTION_STATUS_START_ADDRESS (ROM3_MEMORY_START - EXCHANGE_BUFFER_SIZE)
@@ -61,6 +69,9 @@ static __uint16_t protocol_example[] = {
 #define ROMS_JSON_WAIT_TIME 5
 #define ELEMENTS_PER_PAGE 17
 #endif
+
+#define RANDOM_NUMBER_SIZE 4  // 4 bytes
+#define _VBLOCK_ADDRESS 0x462 // Number of vertical blanks since boot
 
 #define KEY_UP_ARROW 0x480000
 #define KEY_DOWN_ARROW 0x500000
@@ -77,8 +88,9 @@ static __uint16_t protocol_example[] = {
         printf("\033pATARI ST SIDECART CONFIGURATOR v%s - (C)2023 Diego Parrilla / @sidecartridge\033q\r\n", version); \
     } while (0)
 
-int get_number_within_range(char *prompt, __uint8_t num_items, __uint8_t first_value, char cancel_char, char save_char);
-int send_command(__uint16_t command, void *payload, __uint16_t payload_size);
+int get_number_within_range(char *prompt, __uint8_t num_items, __uint8_t first_value, char cancel_char);
+int send_async_command(__uint16_t command, void *payload, __uint16_t payload_size);
+int send_sync_command(__uint16_t command, void *payload, __uint16_t payload_size, __uint32_t timeout, bool show_spinner);
 void please_wait(char *message, __uint8_t seconds);
 void please_wait_silent(__uint8_t seconds);
 void sleep_seconds(__uint8_t seconds, bool silent);
@@ -86,7 +98,7 @@ void spinner(__uint16_t spinner_update_frequency);
 char *read_files_from_memory(__uint8_t *memory_location);
 __uint8_t get_file_count(char *file_array);
 char *print_file_at_index(char *current_ptr, __uint8_t index, int num_columns);
-int display_paginated_content(char *file_array, int num_files, int page_size, char *item_name);
+int display_paginated_content(char *file_array, int num_files, int page_size, char *item_name, __uint32_t *keypress);
 void print_centered(const char *str, int screen_width);
 
 #endif /* HELPER_H_ */

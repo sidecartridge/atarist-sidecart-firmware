@@ -38,7 +38,7 @@ char to_lowercase(char c)
     return c;
 }
 
-int get_number_within_range(char *prompt, __uint8_t num_items, __uint8_t first_value, char cancel_char, char save_char)
+int get_number_within_range(char *prompt, __uint8_t num_items, __uint8_t first_value, char cancel_char)
 {
     char input[3];
     int number;
@@ -63,14 +63,6 @@ int get_number_within_range(char *prompt, __uint8_t num_items, __uint8_t first_v
                 break;
             }
             i++;
-        }
-
-        if (save_char != '\0')
-        {
-            if (to_lowercase(input[i]) == to_lowercase(save_char))
-            {
-                return num_items + first_value; // If returned the number of elements plus first_value, then save command was selected
-            }
         }
 
         if (cancel_char != '\0')
@@ -103,7 +95,7 @@ int get_number_within_range(char *prompt, __uint8_t num_items, __uint8_t first_v
     }
 }
 
-int send_command(__uint16_t command, void *payload, __uint16_t payload_size)
+int send_async_command(__uint16_t command, void *payload, __uint16_t payload_size)
 {
     if (payload_size % 2 != 0)
     {
@@ -134,6 +126,68 @@ int send_command(__uint16_t command, void *payload, __uint16_t payload_size)
         }
     }
     return 0;
+}
+
+int send_sync_command(__uint16_t command, void *payload, __uint16_t payload_size, __uint32_t timeout, bool show_spinner)
+{
+    if (payload_size % 2 != 0)
+    {
+        payload_size++;
+    }
+    __uint32_t random_seed = *((volatile __uint32_t *)RANDOM_SEED_ADDRESS);
+    __uint32_t rom3_address = ROM3_MEMORY_START;
+    __uint8_t command_header = *((volatile __uint8_t *)(rom3_address + PROTOCOL_HEADER));
+    __uint8_t command_code = *((volatile __uint8_t *)(rom3_address + command));
+    __uint8_t command_payload_size = *((volatile __uint8_t *)(rom3_address + payload_size + RANDOM_NUMBER_SIZE)); // Always even!
+#ifdef _DEBUG
+    printf("ROM3 memory address: 0x%08X\r\n", rom3_address);
+    printf("Payload size: %d\r\n", payload_size);
+    printf("Command header: 0x%02X\r\n", command_header);
+    printf("Command code: 0x%02X\r\n", command_code);
+    printf("Command payload size: 0x%02X\r\n", command_payload_size);
+    printf("Random seed address: 0x%08X\r\n", RANDOM_SEED_ADDRESS);
+    printf("New random seed: 0x%08X\r\n", random_seed);
+    printf("Timeout: %d\r\n", timeout);
+#else
+    // randomize the random seed
+    random_seed = random_seed * *((__uint32_t *)_VBLOCK_ADDRESS);
+#endif
+
+    // Send the random seed as part of the payload
+    __uint8_t value = *((volatile __uint8_t *)(rom3_address + (__uint16_t)(random_seed & 0xFFFF)));
+    value = *((volatile __uint8_t *)(rom3_address + (__uint16_t)((random_seed >> 16) & 0xFFFF)));
+
+    if ((payload_size > 0) && (payload != NULL))
+    {
+        for (__uint8_t i = 0; i < payload_size; i += 2)
+        {
+            __uint8_t value = *((volatile __uint8_t *)(rom3_address + *((__uint16_t *)(payload + i))));
+#ifdef _DEBUG
+            printf("Payload[%i]: 0x%04X / 0x%02X\r\n", i, *((__uint16_t *)(payload + i)), value);
+#endif
+        }
+    }
+
+    __uint32_t active_wait = timeout * 50; // Assuming PAL system. 50 VBLs per second
+    __uint32_t remote_random_numer = 0xFFFFFFFF;
+    while (active_wait > 0 && (remote_random_numer != random_seed))
+    {
+        Vsync();
+        if (show_spinner)
+        {
+            spinner(1);
+        }
+        active_wait--;
+        remote_random_numer = *((volatile __uint32_t *)RANDOM_NUMBER_ADDRESS);
+    }
+
+    // If the active wait is 0, it means that the request was succesful
+    // If the active wait is 1, it means that the request timedout
+#ifdef _DEBUG
+    printf("Active wait: %d\r\n", active_wait);
+    printf("Remote random number: 0x%08X\r\n", remote_random_numer);
+#endif
+    return (active_wait == 0);
 }
 
 void sleep_seconds(__uint8_t seconds, bool silent)
@@ -268,7 +322,7 @@ char *print_file_at_index(char *current_ptr, __uint8_t index, int num_columns)
     return current_ptr;
 }
 
-int display_paginated_content(char *file_array, int num_files, int page_size, char *item_name)
+int display_paginated_content(char *file_array, int num_files, int page_size, char *item_name, __uint32_t *keypress)
 {
     void highlight_and_print(char *file_array, __uint8_t index, __uint8_t offset, int current_line, int num_columns, bool highlight)
     {
@@ -307,7 +361,7 @@ int display_paginated_content(char *file_array, int num_files, int page_size, ch
 
         char *current_ptr = file_array;
         int index = 0;
-        int current_line = 2;
+        int current_line = 2 + (ELEMENTS_PER_PAGE - page_size);
         locate(0, current_line);
         printf("\033K"); // Erase to end of line (VT52)
         printf("%s found: %d. ", item_name, num_files);
@@ -345,6 +399,10 @@ int display_paginated_content(char *file_array, int num_files, int page_size, ch
         {
             highlight_and_print(file_array, current_index, page_size * page_number, current_line, 80, true);
             key = Crawcin();
+            if (keypress != NULL)
+            {
+                *keypress = key;
+            }
             switch (key)
             {
             case KEY_UP_ARROW:
@@ -385,6 +443,11 @@ int display_paginated_content(char *file_array, int num_files, int page_size, ch
                 return -1;
             default:
                 // Handle other keys
+                if (keypress != NULL)
+                {
+                    *keypress = key;
+                }
+                return -1;
                 break;
             }
 

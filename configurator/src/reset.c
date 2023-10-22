@@ -14,13 +14,13 @@ __uint8_t reset()
     // Check if the input is 'Y' or 'y'
     if (userResponse == 'Y' || userResponse == 'y')
     {
-        send_command(RESET_DEVICE, NULL, 0);
-        printf("SidecarT has been reset.\r\n");
-        return 1; // Indicate that reset was successful (or some other status code you wish)
+        send_sync_command(RESET_DEVICE, NULL, 0, 10, false);
+        please_wait("\r\033KResetting SidecarT...", 10);
+        printf("\r\033KSidecarT has been reset.\r\n");
     }
     else
     {
         printf("Reset operation cancelled.\r\n");
-        return 0; // Indicate that reset was cancelled. Return to menu
     }
+    return 0; // Return to menu
 }

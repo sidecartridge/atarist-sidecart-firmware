@@ -2,8 +2,7 @@
 
 ConnectionStatus connection_status = DISCONNECTED;
 WifiScanData *wifiScanData = NULL;
-ConnectionData *connection_data = CONNECTION_STATUS_START_ADDRESS;
-__uint16_t previous_connection_status = NOT_SUPPORTED; // Assuming first status is no hardware found for networking
+ConnectionData *connection_data = CONNECTION_STATUS_START_ADDRESS + sizeof(__uint32_t);
 ;
 
 static void read_networks_from_memory(char *ssids, WifiNetworkInfo networks[], __uint16_t total_size)
@@ -38,21 +37,12 @@ static __uint8_t get_network_count(char *file_array)
     return count;
 }
 
-__uint16_t force_connection_status(bool show_bar)
-{
-    previous_connection_status = 99;
-    //    return get_connection_status(show_bar);
-}
-
 __uint16_t get_connection_status(bool show_bar)
 {
-    send_command(GET_IP_DATA, NULL, (__uint16_t)0);
-
-    locate(0, 24);
-    please_wait_silent(1);
+    send_sync_command(GET_IP_DATA, NULL, (__uint16_t)0, 5, false);
     locate(0, 24);
 
-    if (show_bar && (connection_data->status != NOT_SUPPORTED))
+    if (show_bar)
     {
         char buffer[128];
         char *status_str = "Disconnected";
@@ -104,26 +94,21 @@ __uint16_t get_connection_status(bool show_bar)
             status_str = "Networking not supported!";
             break;
         }
-        bool conn_state_changed = !(previous_connection_status == connection_data->status);
-        if (conn_state_changed)
+        sprintf(buffer, "IP: %s | SSID: %s | Status: %s",
+                connection_data->ipv4_address, connection_data->ssid,
+                status_str);
+        printf("\033p");
+        for (int i = 0; i < (80 - strlen(buffer)) / 2; i++)
         {
-            sprintf(buffer, "IP: %s | SSID: %s | Status: %s",
-                    connection_data->ipv4_address, connection_data->ssid,
-                    status_str);
-            printf("\033p");
-            for (int i = 0; i < (80 - strlen(buffer)) / 2; i++)
-            {
-                printf(" ");
-            }
-            printf(buffer);
-            for (int i = 0; i < (80 - strlen(buffer)) / 2; i++)
-            {
-                printf(" ");
-            }
-            printf("\033q");
+            printf(" ");
         }
+        printf(buffer);
+        for (int i = 0; i < (80 - strlen(buffer)) / 2; i++)
+        {
+            printf(" ");
+        }
+        printf("\033q");
     }
-    previous_connection_status = connection_data->status;
     return connection_data->status;
 }
 
@@ -133,18 +118,17 @@ __uint8_t network_selector()
 
     printf("\r\n");
 
-    send_command(LAUNCH_SCAN_NETWORKS, NULL, (__uint16_t)0);
+    locate(0, 2);
+    printf("Scanning the network...");
+    send_sync_command(LAUNCH_SCAN_NETWORKS, NULL, (__uint16_t)0, 10, true);
 
-    please_wait("Scanning the network...", NETWORK_WAIT_TIME);
-
-    send_command(GET_SCANNED_NETWORKS, NULL, (__uint16_t)0);
-
-    please_wait("\n\033KRetrieving networks...", WAIT_TIME);
+    printf("\r\033KRetrieving networks...");
+    send_sync_command(GET_SCANNED_NETWORKS, NULL, (__uint16_t)0, 10, true);
 
     printf("\r\n");
 
     int num_networks = -1;
-    __uint32_t network_list_mem = NETWORK_START_ADDRESS;
+    __uint32_t network_list_mem = NETWORK_START_ADDRESS + sizeof(__uint32_t);
 
 #ifdef _DEBUG
     printf("Reading network list from memory address: 0x%08X\r\n", network_list_mem);
@@ -161,7 +145,7 @@ __uint8_t network_selector()
         return 0; // 0 is go to menu
     }
 
-    __int16_t network_number = display_paginated_content(network_array, get_network_count(network_array), ELEMENTS_PER_PAGE, "Networks");
+    __int16_t network_number = display_paginated_content(network_array, get_network_count(network_array), ELEMENTS_PER_PAGE, "Networks", NULL);
 
     if (network_number <= 0)
     {
@@ -226,7 +210,7 @@ __uint8_t network_selector()
     network_auth_info.auth_mode = wifiScanDataBuff->networks[network_number - 1].auth_mode;
     strcpy(network_auth_info.password, password);
 
-    send_command(CONNECT_NETWORK, &network_auth_info, sizeof(network_auth_info));
+    send_async_command(CONNECT_NETWORK, &network_auth_info, sizeof(network_auth_info));
 
     printf("\r\n\033KROM network loaded. ");
 
@@ -241,52 +225,28 @@ __uint8_t roms_from_network_selector()
 
     printf("\r\n");
 
-    int retries = 5; // for example
-    bool command_executed = false;
     int num_files = -1;
     __uint16_t *ptr;
-    __uint16_t *network_file_list_mem = (__uint16_t *)NETWORK_FILE_LIST_START_ADDRESS;
+    __uint16_t *network_file_list_mem = (__uint16_t *)(NETWORK_FILE_LIST_START_ADDRESS + sizeof(__uint32_t));
 
-    while (!command_executed && retries > 0)
-    {
-        send_command(GET_ROMS_JSON_FILE, NULL, (__uint16_t)0);
-        please_wait("Getting ROMs list...", ROMS_JSON_WAIT_TIME);
-
-        __uint32_t sum = 0;
-        ptr = network_file_list_mem;
-        for (int i = 0; i < EXCHANGE_BUFFER_SIZE / 2; i++)
-        {
-            sum += *ptr++;
-        }
-
-        command_executed = (sum != 0);
-        retries--;
-    }
+    printf("Getting ROMs list...");
+    send_sync_command(GET_ROMS_JSON_FILE, NULL, (__uint16_t)0, 10, true);
 
     printf("\r\n");
-
-    if (!command_executed)
-    {
-        printf("All values are zero. Command not executed!\r\n");
-    }
-    else if (retries == 0)
-    {
-        printf("Max retries reached without success.\r\n");
-    }
 
 #ifdef _DEBUG
     printf("Reading file list from memory address: 0x%08X\r\n", network_file_list_mem);
 #endif
     char *file_array = read_files_from_memory((__uint8_t *)network_file_list_mem);
 
-    if ((!file_array) || (!command_executed) || (retries == 0))
+    if (!file_array)
     {
         printf("No files found. Check if your network connection is working!\r\n");
         printf("Press any key to exit...\r\n");
         // Back to main menu
         return 0; // 0 is go to menu
     }
-    __int16_t rom_number = display_paginated_content(file_array, get_file_count(file_array), ELEMENTS_PER_PAGE, "ROM images");
+    __int16_t rom_number = display_paginated_content(file_array, get_file_count(file_array), ELEMENTS_PER_PAGE, "ROM images", NULL);
 
     if (rom_number <= 0)
     {
@@ -300,11 +260,11 @@ __uint8_t roms_from_network_selector()
 
     print_file_at_index(file_array, rom_number - 1, 0);
 
-    send_command(DOWNLOAD_ROM, &rom_number, 2);
+    printf("Downloading ROM. Wait until the led in the board blinks a 'E' or 'D' in morse...");
 
-    please_wait("Downloading ROM. Wait until the led in the board blinks a 'E' or 'D' in morse.", WAIT_TIME);
+    send_sync_command(DOWNLOAD_ROM, &rom_number, 2, 30, true);
 
-    printf("\033KROM file downloaded. ");
+    printf("\r\033KROM file downloaded. ");
 
     return 1; // Positive is OK
 }

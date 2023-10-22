@@ -3,6 +3,7 @@
 #include "include/helper.h"
 #include "include/romselector.h"
 #include "include/floppyselector.h"
+#include "include/floppydb.h"
 #include "include/config.h"
 #include "include/network.h"
 #include "include/reset.h"
@@ -15,8 +16,10 @@
 #define FLOPPY_RO_MICROSD_SELECTOR_OPTION_LINE 3
 #define FLOPPY_RW_MICROSD_SELECTOR_OPTION '4'
 #define FLOPPY_RW_MICROSD_SELECTOR_OPTION_LINE 4
+#define FLOPPY_DB_SELECTOR_OPTION '5'
+#define FLOPPY_DB_SELECTOR_OPTION_LINE 5
 #define DELAY_TOGGLE_SELECTOR_OPTION 'D'
-#define DELAY_TOGGLE_SELECTOR_OPTION_LINE FLOPPY_RW_MICROSD_SELECTOR_OPTION_LINE + 2
+#define DELAY_TOGGLE_SELECTOR_OPTION_LINE FLOPPY_DB_SELECTOR_OPTION_LINE + 2
 #define NETWORK_SELECTOR_OPTION 'W'
 #define NETWORK_SELECTOR_OPTION_LINE DELAY_TOGGLE_SELECTOR_OPTION_LINE + 1
 #define CONFIGURATION_OPTION 'C'
@@ -32,7 +35,7 @@
 #define PROMT_ALIGN_X 7
 #define PROMT_ALIGN_Y 20
 #define MENU_CALLBACK_INTERVAL 10 // Every 10 seconds poll for the connection status
-#define ALLOWED_KEYS "1234DWCRE"  // Only these keys are allowed
+#define ALLOWED_KEYS "12345DWCRE" // Only these keys are allowed
 
 typedef struct
 {
@@ -51,6 +54,7 @@ static MenuItem menuItems[] = {
     {ROM_NETWORK_SELECTOR_OPTION, ROM_NETWORK_SELECTOR_OPTION_LINE, true, true, "Emulate ROM image from Wi-Fi"},
     {FLOPPY_RO_MICROSD_SELECTOR_OPTION, FLOPPY_RO_MICROSD_SELECTOR_OPTION_LINE, false, false, "Emulate Floppy image from microSD in Read-Only mode (PREVIEW)"},
     {FLOPPY_RW_MICROSD_SELECTOR_OPTION, FLOPPY_RW_MICROSD_SELECTOR_OPTION_LINE, false, false, "Emulate Floppy image from microSD in Read-Write mode (PREVIEW)"},
+    {FLOPPY_DB_SELECTOR_OPTION, FLOPPY_DB_SELECTOR_OPTION_LINE, true, true, "Download from the Floppy Images database (PREVIEW)"},
     {DELAY_TOGGLE_SELECTOR_OPTION, DELAY_TOGGLE_SELECTOR_OPTION_LINE, false, false, ""},
     {NETWORK_SELECTOR_OPTION, NETWORK_SELECTOR_OPTION_LINE, false, true, "Wi-Fi configuration"},
     {CONFIGURATION_OPTION, CONFIGURATION_OPTION_LINE, false, false, "SidecarT configuration"},
@@ -58,12 +62,11 @@ static MenuItem menuItems[] = {
     {EXIT_OPTION, EXIT_OPTION_LINE, false, false, "Exit"}};
 
 // Modify if more items added before this selector
-static __int8_t delay_toogle_selector_index = 4;
+static __int8_t delay_toogle_selector_index = 5;
 
 static __int8_t get_number_active_wait(CallbackFunction callback)
 {
     __uint16_t callback_interval = 0;
-    bool first_display = true;
     while (1)
     {
         char key = '\0';
@@ -87,25 +90,21 @@ static __int8_t get_number_active_wait(CallbackFunction callback)
             if (callback_interval <= 0)
             {
                 callback(true);
-                if ((first_display) || (previous_connection_status != connection_data->status))
+                // Change the DELAY_TOGGLE_SELECTOR_OPTION description according to the value of is_delay_option_enabled()
+                if (is_delay_option_enabled())
                 {
-                    // Change the DELAY_TOGGLE_SELECTOR_OPTION description according to the value of is_delay_option_enabled()
-                    if (is_delay_option_enabled())
+                    menuItems[delay_toogle_selector_index].description = "Disable ROM delay / Ripper mode";
+                }
+                else
+                {
+                    menuItems[delay_toogle_selector_index].description = "Enable ROM delay / Ripper mode";
+                }
+                for (int i = 0; i < sizeof(menuItems) / sizeof(MenuItem); i++)
+                {
+                    if ((!(menuItems[i].networking) || (connection_data->status != NOT_SUPPORTED)) && (!(menuItems[i].connection) || (connection_data->status == CONNECTED_WIFI_IP)))
                     {
-                        menuItems[delay_toogle_selector_index].description = "Disable ROM delay / Ripper mode";
-                    }
-                    else
-                    {
-                        menuItems[delay_toogle_selector_index].description = "Enable ROM delay / Ripper mode";
-                    }
-                    first_display = false;
-                    for (int i = 0; i < sizeof(menuItems) / sizeof(MenuItem); i++)
-                    {
-                        if (!(menuItems[i].networking) || !(menuItems[i].connection) || (connection_data->status == CONNECTED_WIFI_IP))
-                        {
-                            locate(MENU_ALIGN_X, MENU_ALIGN_Y + menuItems[i].line);
-                            printf("%c. %s", menuItems[i].option, menuItems[i].description);
-                        }
+                        locate(MENU_ALIGN_X, MENU_ALIGN_Y + menuItems[i].line);
+                        printf("%c. %s", menuItems[i].option, menuItems[i].description);
                     }
                 }
                 fflush(stdout);
@@ -127,9 +126,6 @@ static __int8_t menu()
     locate(PROMT_ALIGN_X, PROMT_ALIGN_Y);
     char *prompt;
     asprintf(&prompt, "Choose the feature (1 to %d), or press 0 to exit: ", LAST_OPTION);
-
-    force_connection_status(true);
-
     __int8_t feature = get_number_active_wait(get_connection_status);
 
     if (feature <= 0)
@@ -175,6 +171,9 @@ static int run()
         case FLOPPY_RW_MICROSD_SELECTOR_OPTION:
             feature = floppy_selector_rw();
             break;
+        case FLOPPY_DB_SELECTOR_OPTION:
+            feature = floppy_db();
+            break;
         case DELAY_TOGGLE_SELECTOR_OPTION:
             feature = toggle_delay_option();
             break;
@@ -194,7 +193,6 @@ static int run()
         default:
             break;
         }
-        force_connection_status(true);
     }
     locate(0, 24);
     printf("\033KPress any key to reset your Atari ST computer.\r\n");

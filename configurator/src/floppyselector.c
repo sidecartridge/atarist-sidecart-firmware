@@ -9,14 +9,14 @@ static __uint8_t floppy_selector(mode_t floppy_command)
 
     printf("\r\n");
 
-    send_command(LIST_FLOPPIES, NULL, 0);
+    printf("Loading available Floppy images...");
 
-    please_wait("Loading available Floppy images...", WAIT_TIME);
+    send_sync_command(LIST_FLOPPIES, NULL, 0, 10, true);
 
     printf("\r\n");
 
     int num_files = -1;
-    __uint32_t file_list_mem = FILE_LIST_START_ADDRESS;
+    __uint32_t file_list_mem = FILE_LIST_START_ADDRESS + sizeof(__uint32_t);
 
 #ifdef _DEBUG
     printf("Reading file list from memory address: 0x%08X\r\n", file_list_mem);
@@ -30,7 +30,7 @@ static __uint8_t floppy_selector(mode_t floppy_command)
         // Back to main menu
         return 0; // 0 is go to menu
     }
-    __int16_t floppy_number = display_paginated_content(file_array, get_file_count(file_array), ELEMENTS_PER_PAGE, floppy_command == LOAD_FLOPPY_RO ? "Floppy images (Read Only)" : "Floppy images (Read/Write)");
+    __int16_t floppy_number = display_paginated_content(file_array, get_file_count(file_array), ELEMENTS_PER_PAGE, floppy_command == LOAD_FLOPPY_RO ? "Floppy images (Read Only)" : "Floppy images (Read/Write)", NULL);
 
     if (floppy_number <= 0)
     {
@@ -44,11 +44,11 @@ static __uint8_t floppy_selector(mode_t floppy_command)
 
     print_file_at_index(file_array, floppy_number - 1, 0);
 
-    send_command(floppy_command, &floppy_number, 2);
+    printf("\r\033KLoading floppy. Wait until the led in the board blinks a 'F' in morse...");
 
-    please_wait("Loading floppy. Wait until the led in the board blinks a 'F' in morse.", WAIT_TIME);
+    send_sync_command(floppy_command, &floppy_number, 2, 30, true);
 
-    printf("\033KFloppy image file loaded. ");
+    printf("\r\033KFloppy image file loaded. ");
 
     return 1; // Positive is OK
 }

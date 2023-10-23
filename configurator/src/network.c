@@ -37,6 +37,60 @@ static __uint8_t get_network_count(char *file_array)
     return count;
 }
 
+char *get_status_str(ConnectionStatus status)
+{
+    char *status_str = "Disconnected";
+    switch (connection_data->status)
+    {
+    case DISCONNECTED:
+        status_str = "Disconnected";
+        break;
+    case CONNECTING:
+        status_str = "Connecting...";
+        break;
+    case CONNECTED_WIFI:
+        status_str = "Wi-Fi only, no IP";
+        break;
+    case CONNECTED_WIFI_NO_IP:
+        status_str = "Wi-Fi only, no IP";
+        break;
+    case CONNECTED_WIFI_IP:
+        status_str = "Connected";
+        break;
+    case TIMEOUT_ERROR:
+        status_str = "Timeout!";
+        break;
+    case GENERIC_ERROR:
+        status_str = "Error!";
+        break;
+    case NO_DATA_ERROR:
+        status_str = "No data!";
+        break;
+    case NOT_PERMITTED_ERROR:
+        status_str = "Not permitted!";
+        break;
+    case INVALID_ARG_ERROR:
+        status_str = "Invalid args!";
+        break;
+    case IO_ERROR:
+        status_str = "IO error!";
+        break;
+    case BADAUTH_ERROR:
+        status_str = "Bad auth!";
+        break;
+    case CONNECT_FAILED_ERROR:
+        status_str = "Connect failed!";
+        break;
+    case INSUFFICIENT_RESOURCES_ERROR:
+        status_str = "No resources!";
+        break;
+    case NOT_SUPPORTED:
+        status_str = "Networking not supported!";
+        break;
+    }
+    return status_str;
+}
+
 __uint16_t get_connection_status(bool show_bar)
 {
     send_sync_command(GET_IP_DATA, NULL, (__uint16_t)0, 5, false);
@@ -45,55 +99,7 @@ __uint16_t get_connection_status(bool show_bar)
     if (show_bar)
     {
         char buffer[128];
-        char *status_str = "Disconnected";
-        switch (connection_data->status)
-        {
-        case DISCONNECTED:
-            status_str = "Disconnected";
-            break;
-        case CONNECTING:
-            status_str = "Connecting...";
-            break;
-        case CONNECTED_WIFI:
-            status_str = "Wi-Fi only, no IP";
-            break;
-        case CONNECTED_WIFI_NO_IP:
-            status_str = "Wi-Fi only, no IP";
-            break;
-        case CONNECTED_WIFI_IP:
-            status_str = "Connected";
-            break;
-        case TIMEOUT_ERROR:
-            status_str = "Timeout!";
-            break;
-        case GENERIC_ERROR:
-            status_str = "Error!";
-            break;
-        case NO_DATA_ERROR:
-            status_str = "No data!";
-            break;
-        case NOT_PERMITTED_ERROR:
-            status_str = "Not permitted!";
-            break;
-        case INVALID_ARG_ERROR:
-            status_str = "Invalid args!";
-            break;
-        case IO_ERROR:
-            status_str = "IO error!";
-            break;
-        case BADAUTH_ERROR:
-            status_str = "Bad auth!";
-            break;
-        case CONNECT_FAILED_ERROR:
-            status_str = "Connect failed!";
-            break;
-        case INSUFFICIENT_RESOURCES_ERROR:
-            status_str = "No resources!";
-            break;
-        case NOT_SUPPORTED:
-            status_str = "Networking not supported!";
-            break;
-        }
+        char *status_str = get_status_str(connection_data->status);
         sprintf(buffer, "IP: %s | SSID: %s | Status: %s",
                 connection_data->ipv4_address, connection_data->ssid,
                 status_str);
@@ -267,4 +273,47 @@ __uint8_t roms_from_network_selector()
     printf("\r\033KROM file downloaded. ");
 
     return 1; // Positive is OK
+}
+
+__uint8_t wifi_menu()
+{
+    if (connection_data->status == DISCONNECTED)
+    {
+        // If disconnected, connect to a network
+        network_selector();
+        return 0; // Return to menu
+    }
+    else
+    {
+        PRINT_APP_HEADER(VERSION);
+        printf("\r\n");
+        printf("\r\n");
+        printf("SSID: %s\r\n", connection_data->ssid);
+        printf("IP: %s\r\n", connection_data->ipv4_address);
+        printf("Status: %s\r\n", get_status_str(connection_data->status));
+        printf("\r\n");
+        printf("Press [R]eset to restart the Wifi configuration. [ESC] to exit:");
+
+        while (1)
+        {
+            if (Cconis())
+            {
+                int fullkey = Crawcin();
+                __uint8_t key = fullkey & 0xFF;
+                if (fullkey == KEY_ESC)
+                {
+                    // Back to main menu
+                    return 0; // 0 return to menu, no ask
+                }
+                // Check if the input is 'R' or 'r'
+                if ((key == 'R') || (key == 'r'))
+                {
+                    send_async_command(DISCONNECT_NETWORK, NULL, 0);
+                    please_wait("\r\033KInitializing Wifi in the SidecarT...", 10);
+                    network_selector();
+                    return 0; // Return to menu
+                }
+            }
+        }
+    }
 }

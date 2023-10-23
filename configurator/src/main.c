@@ -178,7 +178,7 @@ static int run()
             feature = toggle_delay_option();
             break;
         case NETWORK_SELECTOR_OPTION:
-            feature = network_selector();
+            feature = wifi_menu();
             break;
         case CONFIGURATION_OPTION:
             feature = configuration();

@@ -60,6 +60,7 @@ typedef struct connection_data
     char ssid[MAX_SSID_LENGTH];             // SSID to connect
     char ipv4_address[IPV4_ADDRESS_LENGTH]; // IP address
     char ipv6_address[IPV6_ADDRESS_LENGTH]; // IPv6 address
+    char mac_address[MAX_BSSID_LENGTH];     // MAC address
     __uint16_t status;                      // connection status
 } ConnectionData;
 

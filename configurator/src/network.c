@@ -104,6 +104,10 @@ __uint16_t get_connection_status(bool show_bar)
                 connection_data->ipv4_address, connection_data->ssid,
                 status_str);
         printf("\033p");
+        if (strlen(buffer) % 2 == 1)
+        {
+            printf(" ");
+        }
         for (int i = 0; i < (80 - strlen(buffer)) / 2; i++)
         {
             printf(" ");
@@ -290,6 +294,7 @@ __uint8_t wifi_menu()
         printf("\r\n");
         printf("SSID: %s\r\n", connection_data->ssid);
         printf("IP: %s\r\n", connection_data->ipv4_address);
+        printf("MAC: %s\r\n", connection_data->mac_address);
         printf("Status: %s\r\n", get_status_str(connection_data->status));
         printf("\r\n");
         printf("Press [R]eset to restart the Wifi configuration. [ESC] to exit:");

@@ -7,6 +7,7 @@
 #include "include/config.h"
 #include "include/network.h"
 #include "include/reset.h"
+#include "include/storage.h"
 
 #define ROM_MICROSD_SELECTOR_OPTION '1'
 #define ROM_MICROSD_SELECTOR_OPTION_LINE 1
@@ -64,7 +65,7 @@ static MenuItem menuItems[] = {
 // Modify if more items added before this selector
 static __int8_t delay_toogle_selector_index = 5;
 
-static __int8_t get_number_active_wait(CallbackFunction callback)
+static __int8_t get_number_active_wait(CallbackFunction networkCallback, CallbackFunction storageCallback)
 {
     __uint16_t callback_interval = 0;
     while (1)
@@ -85,11 +86,19 @@ static __int8_t get_number_active_wait(CallbackFunction callback)
                 return (__int8_t)key;
             }
         }
-        if (callback != NULL)
+        if ((networkCallback != NULL) || (storageCallback != NULL))
         {
             if (callback_interval <= 0)
             {
-                callback(true);
+                // The order of the call matters. Check the usage of the memory
+                if (storageCallback != NULL)
+                {
+                    storageCallback(true);
+                }
+                if (networkCallback != NULL)
+                {
+                    networkCallback(true);
+                }
                 // Change the DELAY_TOGGLE_SELECTOR_OPTION description according to the value of is_delay_option_enabled()
                 if (is_delay_option_enabled())
                 {
@@ -126,7 +135,7 @@ static __int8_t menu()
     locate(PROMT_ALIGN_X, PROMT_ALIGN_Y);
     char *prompt;
     asprintf(&prompt, "Choose the feature (1 to %d), or press 0 to exit: ", LAST_OPTION);
-    __int8_t feature = get_number_active_wait(get_connection_status);
+    __int8_t feature = get_number_active_wait(get_connection_status, get_storage_status);
 
     if (feature <= 0)
         feature = -1;

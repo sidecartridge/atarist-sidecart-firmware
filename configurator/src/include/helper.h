@@ -47,6 +47,7 @@ static __uint32_t random_number = 0x0;
 #define NETWORK_START_ADDRESS &wifi_scan_data_example
 #define DB_FILES_LIST_START_ADDRESS &network_file_list_example[0]
 #define CONNECTION_STATUS_START_ADDRESS &connection_data_example
+#define SD_CARD_DATA_START_ADDRESS &sdCardDataExample
 #define PROTOCOL_HEADER 0x0000
 #define WAIT_TIME 0
 #define NETWORK_WAIT_TIME 2
@@ -63,6 +64,7 @@ static __uint32_t random_number = 0x0;
 #define CONFIG_START_ADDRESS (ROM3_MEMORY_START - EXCHANGE_BUFFER_SIZE)
 #define NETWORK_START_ADDRESS (ROM3_MEMORY_START - EXCHANGE_BUFFER_SIZE)
 #define CONNECTION_STATUS_START_ADDRESS (ROM3_MEMORY_START - EXCHANGE_BUFFER_SIZE)
+#define SD_CARD_DATA_START_ADDRESS (ROM3_MEMORY_START - EXCHANGE_BUFFER_SIZE)
 #define PROTOCOL_HEADER 0xABCD
 #define WAIT_TIME 2
 #define NETWORK_WAIT_TIME 10
@@ -85,7 +87,7 @@ static __uint32_t random_number = 0x0;
     {                                                                                                                  \
         clearHome();                                                                                                   \
         locate(0, 0);                                                                                                  \
-        printf("\033pATARI ST SIDECART CONFIGURATOR v%s - (C)2023 Diego Parrilla / @sidecartridge\033q\r\n", version); \
+        printf("\033p         ATARI ST SIDECART CONFIGURATOR v%s - (C)2023 @sidecartridge        \033q\r\n", version); \
     } while (0)
 
 int get_number_within_range(char *prompt, __uint8_t num_items, __uint8_t first_value, char cancel_char);

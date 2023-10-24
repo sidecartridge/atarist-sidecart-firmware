@@ -42,8 +42,6 @@ typedef struct
 {
     char option;
     int line;
-    bool connection; // Connection needed?
-    bool networking; // Networking needed?
     const char *description;
 } MenuItem;
 
@@ -51,19 +49,30 @@ typedef void (*CallbackFunction)();
 
 // Option index, line, connection needed?, networking needed? description
 static MenuItem menuItems[] = {
-    {ROM_MICROSD_SELECTOR_OPTION, ROM_MICROSD_SELECTOR_OPTION_LINE, false, false, "Emulate ROM image from microSD card"},
-    {ROM_NETWORK_SELECTOR_OPTION, ROM_NETWORK_SELECTOR_OPTION_LINE, true, true, "Emulate ROM image from Wi-Fi"},
-    {FLOPPY_RO_MICROSD_SELECTOR_OPTION, FLOPPY_RO_MICROSD_SELECTOR_OPTION_LINE, false, false, "Emulate Floppy image from microSD in Read-Only mode (PREVIEW)"},
-    {FLOPPY_RW_MICROSD_SELECTOR_OPTION, FLOPPY_RW_MICROSD_SELECTOR_OPTION_LINE, false, false, "Emulate Floppy image from microSD in Read-Write mode (PREVIEW)"},
-    {FLOPPY_DB_SELECTOR_OPTION, FLOPPY_DB_SELECTOR_OPTION_LINE, true, true, "Download from the Floppy Images database (PREVIEW)"},
-    {DELAY_TOGGLE_SELECTOR_OPTION, DELAY_TOGGLE_SELECTOR_OPTION_LINE, false, false, ""},
-    {NETWORK_SELECTOR_OPTION, NETWORK_SELECTOR_OPTION_LINE, false, true, "Wi-Fi configuration"},
-    {CONFIGURATION_OPTION, CONFIGURATION_OPTION_LINE, false, false, "SidecarT configuration"},
-    {RESET_OPTION, RESET_OPTION_LINE, false, false, "Reset to default configuration"},
-    {EXIT_OPTION, EXIT_OPTION_LINE, false, false, "Exit"}};
+    {ROM_MICROSD_SELECTOR_OPTION, ROM_MICROSD_SELECTOR_OPTION_LINE, "Emulate ROM image from microSD card"},
+    {ROM_NETWORK_SELECTOR_OPTION, ROM_NETWORK_SELECTOR_OPTION_LINE, "Emulate ROM image from Wi-Fi"},
+    {FLOPPY_RO_MICROSD_SELECTOR_OPTION, FLOPPY_RO_MICROSD_SELECTOR_OPTION_LINE, "Emulate Floppy image from microSD in Read-Only mode (PREVIEW)"},
+    {FLOPPY_RW_MICROSD_SELECTOR_OPTION, FLOPPY_RW_MICROSD_SELECTOR_OPTION_LINE, "Emulate Floppy image from microSD in Read-Write mode (PREVIEW)"},
+    {FLOPPY_DB_SELECTOR_OPTION, FLOPPY_DB_SELECTOR_OPTION_LINE, "Download from the Floppy Images database (PREVIEW)"},
+    {DELAY_TOGGLE_SELECTOR_OPTION, DELAY_TOGGLE_SELECTOR_OPTION_LINE, ""},
+    {NETWORK_SELECTOR_OPTION, NETWORK_SELECTOR_OPTION_LINE, "Wi-Fi configuration"},
+    {CONFIGURATION_OPTION, CONFIGURATION_OPTION_LINE, "SidecarT configuration"},
+    {RESET_OPTION, RESET_OPTION_LINE, "Reset to default configuration"},
+    {EXIT_OPTION, EXIT_OPTION_LINE, "Exit"}};
 
 // Modify if more items added before this selector
 static __int8_t delay_toogle_selector_index = 5;
+
+// BLink if there is a new verson available
+static void blink_if_new_version_available(__uint16_t blink_toogle)
+{
+    if (check_latest_release())
+    {
+        locate(47, 0);
+        printf("\033p%s\033q", blink_toogle ? "!" : " ");
+        fflush(stdout);
+    }
+}
 
 static __int8_t get_number_active_wait(CallbackFunction networkCallback, CallbackFunction storageCallback)
 {
@@ -110,11 +119,8 @@ static __int8_t get_number_active_wait(CallbackFunction networkCallback, Callbac
                 }
                 for (int i = 0; i < sizeof(menuItems) / sizeof(MenuItem); i++)
                 {
-                    if ((!(menuItems[i].networking) || (connection_data->status != NOT_SUPPORTED)) && (!(menuItems[i].connection) || (connection_data->status == CONNECTED_WIFI_IP)))
-                    {
-                        locate(MENU_ALIGN_X, MENU_ALIGN_Y + menuItems[i].line);
-                        printf("%c. %s", menuItems[i].option, menuItems[i].description);
-                    }
+                    locate(MENU_ALIGN_X, MENU_ALIGN_Y + menuItems[i].line);
+                    printf("%c. %s", menuItems[i].option, menuItems[i].description);
                 }
                 fflush(stdout);
                 callback_interval = MENU_CALLBACK_INTERVAL;
@@ -123,6 +129,7 @@ static __int8_t get_number_active_wait(CallbackFunction networkCallback, Callbac
             {
                 please_wait_silent(1);
                 callback_interval--;
+                blink_if_new_version_available(callback_interval % 2);
             }
         }
     }
@@ -135,7 +142,7 @@ static __int8_t menu()
     locate(PROMT_ALIGN_X, PROMT_ALIGN_Y);
     char *prompt;
     asprintf(&prompt, "Choose the feature (1 to %d), or press 0 to exit: ", LAST_OPTION);
-    __int8_t feature = get_number_active_wait(get_connection_status, get_storage_status);
+    __int8_t feature = get_number_active_wait((CallbackFunction)get_connection_status, (CallbackFunction)get_storage_status);
 
     if (feature <= 0)
         feature = -1;

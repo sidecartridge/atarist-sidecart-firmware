@@ -8,6 +8,7 @@
 #include "commands.h"
 #include "screen.h"
 #include "helper.h"
+#include "storage.h"
 
 __uint8_t floppy_selector_ro();
 __uint8_t floppy_selector_rw();

@@ -9,6 +9,12 @@ __uint8_t rom_selector()
 
     printf("\r\n");
 
+    if (check_folder_roms() > 0)
+    {
+        // Errror. Back to main menu
+        return 0; // 0 is go to menu
+    }
+
     printf("Loading available ROM images...");
 
     send_sync_command(LIST_ROMS, NULL, 0, 10, true);

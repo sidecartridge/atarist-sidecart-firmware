@@ -9,6 +9,12 @@ static __uint8_t floppy_selector(mode_t floppy_command)
 
     printf("\r\n");
 
+    if (check_folder_floppies() > 0)
+    {
+        // Errror. Back to main menu
+        return 0; // 0 is go to menu
+    }
+
     printf("Loading available Floppy images...");
 
     send_sync_command(LIST_FLOPPIES, NULL, 0, 10, true);

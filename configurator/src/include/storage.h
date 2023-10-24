@@ -12,6 +12,14 @@
 
 typedef enum
 {
+    ROMS,
+    FLOPPIES,
+    FLOPPIES_DB,
+    HARDDISKS
+} StorageType;
+
+typedef enum
+{
     SD_CARD_MOUNTED = 0,       // SD card is OK
     SD_CARD_NOT_MOUNTED,       // SD not mounted
     ROMS_FOLDER_OK = 100,      // ROMs folder is OK
@@ -39,6 +47,8 @@ typedef struct sd_data
     __uint16_t harddisks_folder_status;       // Hard disks folder status
 } SdCardData;
 
+extern SdCardData *sd_card_data;
+
 #ifdef _DEBUG
 static SdCardData sdCardDataExample = {
     .roms_folder = "/roms",
@@ -57,5 +67,9 @@ static SdCardData sdCardDataExample = {
 
 //__uint8_t storage_menu();
 __uint16_t get_storage_status(bool show_bar);
+__uint8_t check_folder_roms();
+__uint8_t check_folder_floppies();
+__uint8_t check_folder_floppies_db();
+__uint8_t check_folder_harddisks();
 
 #endif // STORAGE_H

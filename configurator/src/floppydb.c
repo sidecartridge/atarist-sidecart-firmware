@@ -28,6 +28,20 @@ __uint8_t floppy_db()
         printf("Press [ESC] to return to main menu.");
     }
     PRINT_APP_HEADER(VERSION);
+
+    printf("\r\n");
+
+    if (check_folder_floppies_db() > 0)
+    {
+        // Errror. Back to main menu
+        return 0; // 0 is go to menu
+    }
+    if (check_network_connection() > 0)
+    {
+        // No network connection. Back to main menu
+        return 0;
+    }
+
     print_alphanum_bar();
     int padding = 2;
     char nav_arrow_keys[36] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";

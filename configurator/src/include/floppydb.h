@@ -8,6 +8,8 @@
 #include "commands.h"
 #include "screen.h"
 #include "helper.h"
+#include "storage.h"
+#include "network.h"
 
 __uint8_t floppy_db();
 

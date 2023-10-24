@@ -2,8 +2,10 @@
 
 ConnectionStatus connection_status = DISCONNECTED;
 WifiScanData *wifiScanData = NULL;
-ConnectionData *connection_data = CONNECTION_STATUS_START_ADDRESS + sizeof(__uint32_t);
-;
+// ConnectionData *connection_data = (ConnectionData *)(CONNECTION_STATUS_START_ADDRESS + sizeof(__uint32_t));
+ConnectionData *connection_data = NULL;
+bool poll_latest_release = true;
+bool latest_release_available = false;
 
 static void read_networks_from_memory(char *ssids, WifiNetworkInfo networks[], __uint16_t total_size)
 {
@@ -94,6 +96,13 @@ char *get_status_str(ConnectionStatus status)
 __uint16_t get_connection_status(bool show_bar)
 {
     send_sync_command(GET_IP_DATA, NULL, (__uint16_t)0, 5, false);
+
+    if (connection_data == NULL)
+    {
+        connection_data = malloc(sizeof(ConnectionData));
+    }
+    memcpy(connection_data, (ConnectionData *)(CONNECTION_STATUS_START_ADDRESS + sizeof(__uint32_t)), sizeof(ConnectionData));
+
     locate(0, 24);
 
     if (show_bar)
@@ -119,7 +128,41 @@ __uint16_t get_connection_status(bool show_bar)
         }
         printf("\033q");
     }
+
+    check_latest_release();
     return connection_data->status;
+}
+
+bool check_latest_release()
+{
+    // Check if the latest release is available
+    if (connection_data->status == CONNECTED_WIFI_IP)
+    {
+        if (poll_latest_release)
+        {
+            poll_latest_release = false;
+            int err = send_sync_command(GET_LATEST_RELEASE, NULL, (__uint16_t)0, 10, false);
+            if (err == 0)
+            {
+                char *latest_release = (char *)(LATEST_RELEASE_START_ADDRESS + sizeof(__uint32_t));
+                // The latest release is the same as the current version or not?
+                latest_release_available = strlen(latest_release) > 0;
+            }
+        }
+    }
+    return latest_release_available;
+}
+
+__uint8_t check_network_connection()
+{
+    if ((connection_data != NULL) && (connection_data->status != CONNECTED_WIFI_IP))
+    {
+        printf("No WiFi connection found. Connect to a WiFi network first.\r\n");
+        printf("Press any key to exit...\r\n");
+        getchar();
+        return 1; // Error
+    }
+    return 0; // ok
 }
 
 __uint8_t network_selector()
@@ -143,7 +186,7 @@ __uint8_t network_selector()
 #ifdef _DEBUG
     printf("Reading network list from memory address: 0x%08X\r\n", network_list_mem);
 #endif
-    WifiScanData *wifiScanDataBuff = network_list_mem;
+    WifiScanData *wifiScanDataBuff = (WifiScanData *)network_list_mem;
     char *network_array = malloc(MAX_SSID_LENGTH * wifiScanDataBuff->count + 1);
     read_networks_from_memory(network_array, wifiScanDataBuff->networks, wifiScanDataBuff->count);
 
@@ -234,6 +277,12 @@ __uint8_t roms_from_network_selector()
     PRINT_APP_HEADER(VERSION);
 
     printf("\r\n");
+
+    if (check_network_connection() > 0)
+    {
+        // No network connection. Back to main menu
+        return 0;
+    }
 
     int num_files = -1;
     __uint16_t *ptr;

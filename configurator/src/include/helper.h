@@ -35,6 +35,8 @@ static __uint16_t protocol_example[] = {
     0x9ABC,
     0xDEF0,
 };
+static char *latest_release_example = "v1.0.0\0";
+
 static __uint32_t random_seed = 0x12345678;
 static __uint32_t random_number = 0x0;
 #define ROM4_MEMORY_START &protocol_example[0]
@@ -48,6 +50,7 @@ static __uint32_t random_number = 0x0;
 #define DB_FILES_LIST_START_ADDRESS &network_file_list_example[0]
 #define CONNECTION_STATUS_START_ADDRESS &connection_data_example
 #define SD_CARD_DATA_START_ADDRESS &sdCardDataExample
+#define LATEST_RELEASE_START_ADDRESS &latest_release_example
 #define PROTOCOL_HEADER 0x0000
 #define WAIT_TIME 0
 #define NETWORK_WAIT_TIME 2
@@ -65,6 +68,7 @@ static __uint32_t random_number = 0x0;
 #define NETWORK_START_ADDRESS (ROM3_MEMORY_START - EXCHANGE_BUFFER_SIZE)
 #define CONNECTION_STATUS_START_ADDRESS (ROM3_MEMORY_START - EXCHANGE_BUFFER_SIZE)
 #define SD_CARD_DATA_START_ADDRESS (ROM3_MEMORY_START - EXCHANGE_BUFFER_SIZE)
+#define LATEST_RELEASE_START_ADDRESS (ROM3_MEMORY_START - EXCHANGE_BUFFER_SIZE)
 #define PROTOCOL_HEADER 0xABCD
 #define WAIT_TIME 2
 #define NETWORK_WAIT_TIME 10

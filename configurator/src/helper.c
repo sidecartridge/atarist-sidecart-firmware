@@ -340,7 +340,7 @@ int display_paginated_content(char *file_array, int num_files, int page_size, ch
     int current_index = 0;
     locate(0, 22);
     printf("Use [UP] and [DOWN] arrows to select. [LEFT] and [RIGHT] to paginate.\r\n");
-    printf("Press [ENTER] to load it. [ESC] to return to main menu.");
+    printf("Press [ENTER] or [RETURN] to load. [ESC] to return to main menu.");
 
     while (selected_rom < 0)
     {
@@ -437,6 +437,7 @@ int display_paginated_content(char *file_array, int num_files, int page_size, ch
                 }
                 break;
             case KEY_ENTER:
+            case KEY_RETURN:
                 selected_rom = current_index + 1;
                 return selected_rom;
             case KEY_ESC:

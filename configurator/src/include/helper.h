@@ -83,7 +83,8 @@ static __uint32_t random_number = 0x0;
 #define KEY_DOWN_ARROW 0x500000
 #define KEY_LEFT_ARROW 0x4B0000
 #define KEY_RIGHT_ARROW 0x4D0000
-#define KEY_ENTER 0x1C000D
+#define KEY_RETURN 0x1C000D
+#define KEY_ENTER 0x72000D
 #define KEY_ESC 0x1001B
 
 #define PRINT_APP_HEADER(version)                                                                                      \

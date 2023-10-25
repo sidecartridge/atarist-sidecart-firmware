@@ -35,11 +35,11 @@ __uint16_t get_storage_status(bool show_bar)
                     sd_card_data->floppies_folder);
         }
 
+        printf("\033p");
         if (strlen(buffer) % 2 == 1)
         {
             printf(" ");
         }
-        printf("\033p");
         for (int i = 0; i < (80 - strlen(buffer)) / 2; i++)
         {
             printf(" ");

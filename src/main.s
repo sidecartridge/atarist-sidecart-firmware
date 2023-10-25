@@ -79,13 +79,14 @@ pre_auto:
     move.w #37,-(sp)			; XBIOS Vsync wait
     trap #14
     addq.l #2,sp
-    dbf d7,.ddell
 
 ; Now check the left shift key. If pressed, exit.
 	move.w #-1, -(sp)			; Read all key status
     move.w #$b, -(sp)			; XBIOS Get shift key status
     trap #13
     addq.l #4,sp
+
+    dbf d7,.ddell
 
     btst #1,d0
     bne.s adjust_mem
@@ -108,16 +109,8 @@ adjust_mem:
 
 run_configurator:
 
-;	move.w #1,-(sp) ;wait keypress
-;	trap #1
-;	addq.l #6,sp
-
    	lea configurator(pc),a6
 	move.w #((end_configurator - configurator)/4),d2
-;  bra.s common
-
-;run2  lea thefirdc(pc),a6
-;  move.w #7961/4,d2
 
 ; Check memory and copy code routine.
 ; Arguments:

@@ -60,8 +60,12 @@ static MenuItem menuItems[] = {
     {RESET_OPTION, RESET_OPTION_LINE, "Reset to default configuration"},
     {EXIT_OPTION, EXIT_OPTION_LINE, "Exit"}};
 
+// Flag if loading from ROM boot or GEM program
+static bool is_rom_boot = false;
+
 // Modify if more items added before this selector
 static __int8_t delay_toogle_selector_index = 5;
+static __int8_t exit_option_index = (sizeof(menuItems) / sizeof(menuItems[0])) - 1;
 
 // BLink if there is a new verson available
 static void blink_if_new_version_available(__uint16_t blink_toogle)
@@ -89,9 +93,8 @@ static __int8_t get_number_active_wait(CallbackFunction networkCallback, Callbac
                 key -= 32;
             }
             // only allowed keys
-            if (strchr(ALLOWED_KEYS, key) != NULL)
+            if ((strchr(ALLOWED_KEYS, key) != NULL) && (key != '\0'))
             {
-                printf("%c", key);
                 return (__int8_t)key;
             }
         }
@@ -116,6 +119,15 @@ static __int8_t get_number_active_wait(CallbackFunction networkCallback, Callbac
                 else
                 {
                     menuItems[delay_toogle_selector_index].description = "Enable ROM delay / Ripper mode";
+                }
+                // Change the exit option description according to the value of is_rom_boot
+                if (is_rom_boot)
+                {
+                    menuItems[exit_option_index].description = "Reboot";
+                }
+                else
+                {
+                    menuItems[exit_option_index].description = "Exit to GEM";
                 }
                 for (int i = 0; i < sizeof(menuItems) / sizeof(MenuItem); i++)
                 {
@@ -203,16 +215,18 @@ static int run()
             feature = reset();
             break;
         case EXIT_OPTION:
-            restoreResolutionAndPalette(&screenContext);
-            return 0;
+            if (!is_rom_boot)
+            {
+                restoreResolutionAndPalette(&screenContext);
+                return 0;
+            }
             break;
         default:
             break;
         }
     }
-    locate(0, 24);
-    printf("\033KPress any key to reset your Atari ST computer.\r\n");
-
+    locate(0, 22);
+    printf("\033K\r\n\033K\r\n\033KPress any key to reset your Atari ST computer...");
 #ifdef _DEBUG
     getchar();
     restoreResolutionAndPalette(&screenContext);
@@ -228,15 +242,9 @@ static int run()
         }
         else
         {
-            typedef void (*tFunction)(void);
-
-            static const kWarmStartAddress_U32 = 0xE00000ul;
-            tFunction JumpToTOS;
-            __uint32_t myJumpAddress_U32;
-
-            myJumpAddress_U32 = (*(volatile __uint32_t *)(kWarmStartAddress_U32 + sizeof(__uint32_t))); /* slot #0 is occupied by SSP	*/
-            JumpToTOS = (tFunction)myJumpAddress_U32;
-            JumpToTOS();
+            __asm__(
+                "move.l (0x4), %a0\n\t"
+                "jmp (%a0)");
         }
     }
 #endif
@@ -246,6 +254,7 @@ static int run()
 // Standard C entry point
 int main(int argc, char *argv[])
 {
+    is_rom_boot = (argc == 1);
     // switching to supervisor mode and execute run()
     // needed because of direct memory access for reading/writing the palette
     Supexec(&run);

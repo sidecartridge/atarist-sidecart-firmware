@@ -19,6 +19,11 @@ build_type=$2
 ST_WORKING_FOLDER=$working_folder/configurator stcmd make $build_type
 ST_WORKING_FOLDER=$working_folder stcmd make $build_type
 
+filename_tos="./dist/SIDECART.TOS"
+
+# Copy the SIDECART.TOS file for testing purposes
+ST_WORKING_FOLDER=$working_folder stcmd cp ./configurator/dist/SIDECART.TOS $filename_tos
+
 filename="./dist/FIRMWARE.IMG"
 
 # Copy the BOOT.BIN file to a ROM size file for testing

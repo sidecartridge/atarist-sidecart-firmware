@@ -30,7 +30,7 @@ typedef enum
     HARDDISKS_FOLDER_NOTFOUND, // Hard disks folder error
 } StorageStatus;
 
-#define MAX_FOLDER_LENGTH 128 // Max length of the folder names
+#define MAX_FOLDER_LENGTH 128        // Max length of the folder names
 typedef struct sd_data
 {
     char roms_folder[MAX_FOLDER_LENGTH];      // ROMs folder name

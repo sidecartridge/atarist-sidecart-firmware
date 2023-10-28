@@ -58,7 +58,9 @@ static ConfigData config_data_example = {
 };
 #endif
 
-void read_config();
+#define STATUS_STRING_BUFFER_SIZE 80 // Buffer size to display
+
+__uint8_t read_config();
 __uint8_t configuration();
 bool is_delay_option_enabled();
 __uint8_t toggle_delay_option(void);

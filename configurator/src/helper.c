@@ -287,6 +287,7 @@ char *print_file_at_index(char *current_ptr, __uint8_t index, int num_columns)
     { // As long as we don't hit the double null terminator
         if (current_index == index)
         {
+            printf("\033K");       // Erase to end of line (VT52)
             int chars_printed = 0; // To keep track of how many characters are printed
 
             while (*current_ptr)
@@ -297,13 +298,13 @@ char *print_file_at_index(char *current_ptr, __uint8_t index, int num_columns)
             }
 
             // If num_columns is provided, fill the rest of the line with spaces
-            if (num_columns > 0)
-            {
-                for (; chars_printed < num_columns; chars_printed++)
-                {
-                    putchar(' ');
-                }
-            }
+            // if (num_columns > 0)
+            // {
+            //     for (; chars_printed < num_columns; chars_printed++)
+            //     {
+            //         putchar(' ');
+            //     }
+            // }
 
             putchar('\r');
             putchar('\n');

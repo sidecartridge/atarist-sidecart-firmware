@@ -95,6 +95,8 @@ static __uint32_t random_number = 0x0;
         printf("\033p         ATARI ST SIDECART CONFIGURATOR v%s - (C)2023 @sidecartridge        \033q\r\n", version); \
     } while (0)
 
+#define max(a, b) ((a) > (b) ? (a) : (b))
+
 int get_number_within_range(char *prompt, __uint8_t num_items, __uint8_t first_value, char cancel_char);
 int send_async_command(__uint16_t command, void *payload, __uint16_t payload_size);
 int send_sync_command(__uint16_t command, void *payload, __uint16_t payload_size, __uint32_t timeout, bool show_spinner);

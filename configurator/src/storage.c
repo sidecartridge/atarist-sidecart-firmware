@@ -5,53 +5,54 @@ SdCardData *sd_card_data = NULL;
 
 __uint16_t get_storage_status(bool show_bar)
 {
-    send_sync_command(GET_SD_DATA, NULL, (__uint16_t)0, 5, false);
-
-    if (sd_card_data == NULL)
+    char buffer[STATUS_STRING_BUFFER_SIZE];
+    int err = send_sync_command(GET_SD_DATA, NULL, (__uint16_t)0, 5, false);
+    if (err != 0)
     {
-        // We don't know the size of the structure, but 1K should be more than enough
-        sd_card_data = malloc(1024);
+        snprintf(buffer, STATUS_STRING_BUFFER_SIZE, "Cannot read microSD status. Is the SidecarT connected?");
     }
-    memcpy(sd_card_data, (SdCardData *)(SD_CARD_DATA_START_ADDRESS + sizeof(__uint32_t)), 1024);
+    else
+    {
+        if (sd_card_data == NULL)
+        {
+            // We don't know the size of the structure, but 1K should be more than enough
+            sd_card_data = malloc(sizeof(SdCardData));
+        }
+        memcpy(sd_card_data, (SdCardData *)(SD_CARD_DATA_START_ADDRESS + sizeof(__uint32_t)), sizeof(SdCardData));
 
+        if (show_bar)
+        {
+            if (sd_card_data->status == SD_CARD_MOUNTED)
+            {
+                // Make sure you calculate the space used correctly to avoid underflow
+                int space = max(0, sd_card_data->sd_size - sd_card_data->sd_free_space);
+
+                snprintf(buffer, STATUS_STRING_BUFFER_SIZE, "%i of %iMB used | %i ROMs in %s | %i Floppies in %s",
+                         space,
+                         sd_card_data->sd_size,
+                         sd_card_data->roms_folder_status == ROMS_FOLDER_OK ? sd_card_data->roms_folder_count : 0,
+                         sd_card_data->roms_folder_status == ROMS_FOLDER_OK ? sd_card_data->roms_folder : "Not Found",
+                         sd_card_data->floppies_folder_status == FLOPPIES_FOLDER_OK ? sd_card_data->floppies_folder_count : 0,
+                         sd_card_data->floppies_folder_status == FLOPPIES_FOLDER_OK ? sd_card_data->floppies_folder : "Not Found");
+            }
+            else
+            {
+                snprintf(buffer, STATUS_STRING_BUFFER_SIZE, "No microSD card found. Insert one with the folders '%s' and '%s'",
+                         sd_card_data->roms_folder,
+                         sd_card_data->floppies_folder);
+            }
+        }
+    }
     locate(0, 23);
-    if (show_bar)
-    {
-        char buffer[128];
-        if (sd_card_data->status == SD_CARD_MOUNTED)
-        {
-            sprintf(buffer, "%i of %iMB used | %i ROMs in %s | %i Floppies in %s",
-                    sd_card_data->sd_size - sd_card_data->sd_free_space,
-                    sd_card_data->sd_size,
-                    sd_card_data->roms_folder_status == ROMS_FOLDER_OK ? sd_card_data->roms_folder_count : 0,
-                    sd_card_data->roms_folder_status == ROMS_FOLDER_OK ? sd_card_data->roms_folder : "Not Found",
-                    sd_card_data->floppies_folder_status == FLOPPIES_FOLDER_OK ? sd_card_data->floppies_folder_count : 0,
-                    sd_card_data->floppies_folder_status == FLOPPIES_FOLDER_OK ? sd_card_data->floppies_folder : "Not Found");
-        }
-        else
-        {
-            sprintf(buffer, "No microSD card found. Insert one with the folders '%s' and '%s'",
-                    sd_card_data->roms_folder,
-                    sd_card_data->floppies_folder);
-        }
+    printf("\033p");
+    int bufferLength = strlen(buffer);
+    int totalPadding = STATUS_STRING_BUFFER_SIZE - bufferLength;
+    int leftPadding = totalPadding / 2;
+    int rightPadding = totalPadding - leftPadding;
 
-        printf("\033p");
-        if (strlen(buffer) % 2 == 1)
-        {
-            printf(" ");
-        }
-        for (int i = 0; i < (80 - strlen(buffer)) / 2; i++)
-        {
-            printf(" ");
-        }
-        printf(buffer);
-        for (int i = 0; i < (80 - strlen(buffer)) / 2; i++)
-        {
-            printf(" ");
-        }
-        printf("\033q");
-    }
-    return sd_card_data->status;
+    printf("%*s%s%*s", leftPadding, "", buffer, rightPadding, "");
+    printf("\033q");
+    return err;
 }
 
 static __uint8_t check_folder(__uint16_t service)

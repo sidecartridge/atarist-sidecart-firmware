@@ -255,9 +255,17 @@ __uint8_t configuration()
     }
 }
 
-void read_config()
+__uint8_t read_config()
 {
-    send_sync_command(GET_CONFIG, NULL, 0, 10, false);
+
+#ifndef _DEBUG
+    int err = send_sync_command(GET_CONFIG, NULL, 0, 10, false);
+
+    if (err != 0)
+    {
+        printf("Cannot read configuration. Is the SidecarT connected?\r\nTry to reset the SidecarT and try again.\r\n");
+        return 1;
+    }
 
     ConfigData configData = load_all_entries();
 
@@ -268,6 +276,8 @@ void read_config()
             is_delay_option = strcmp(configData.entries[i].value, "true") == 0;
         }
     }
+#endif
+    return 0;
 }
 
 bool is_delay_option_enabled(void)

@@ -159,6 +159,7 @@ static __int8_t menu()
     if (feature <= 0)
         feature = -1;
 
+    free(prompt);
     return feature;
 }
 
@@ -179,9 +180,9 @@ static int run()
         initMedResolution(palette);
     }
 
-    read_config();
+    __uint8_t err = read_config();
 
-    __uint8_t feature = 0; // Feature 0 is menu
+    __uint8_t feature = err; // If the config is not loaded, exit the program. Otherwise, show the menu
     while (feature == 0)
     {
         feature = menu();

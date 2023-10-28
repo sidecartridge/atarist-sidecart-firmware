@@ -15,6 +15,7 @@ jobs:
           - os: ubuntu-latest
             firmware_name: FIRMWARE.IMG
             boot_name: BOOT.BIN
+            tos_name: SIDECART.TOS
     steps:  
     - name: Checkout the code
       uses: actions/checkout@v3
@@ -65,4 +66,20 @@ jobs:
         asset_name: ${{ matrix.boot_name }}
         tag: latest
         overwrite: true
-  
+    - name: Upload the TOS file
+      uses: svenstaro/upload-release-action@v2
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: dist/${{ matrix.tos_name }}
+        asset_name: ${{ matrix.tos_name }}
+        tag: ${{ github.ref }}
+        overwrite: true
+    - name: Upload the TOS file to latest
+      uses: svenstaro/upload-release-action@v2
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: dist/${{ matrix.tos_name }}
+        asset_name: ${{ matrix.tos_name }}
+        tag: latest
+        overwrite: true
+      

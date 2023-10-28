@@ -95,58 +95,60 @@ char *get_status_str(ConnectionStatus status)
 
 __uint16_t get_connection_status(bool show_bar)
 {
-    send_sync_command(GET_IP_DATA, NULL, (__uint16_t)0, 5, false);
+    char buffer[STATUS_STRING_BUFFER_SIZE];
+    int err = send_sync_command(GET_IP_DATA, NULL, (__uint16_t)0, 5, false);
 
-    if (connection_data == NULL)
+    if (err != 0)
     {
-        connection_data = malloc(sizeof(ConnectionData));
+        snprintf(buffer, STATUS_STRING_BUFFER_SIZE, "Cannot read network status. Is the SidecarT connected?");
     }
-    memcpy(connection_data, (ConnectionData *)(CONNECTION_STATUS_START_ADDRESS + sizeof(__uint32_t)), sizeof(ConnectionData));
-
-    locate(0, 24);
+    else
+    {
+        if (connection_data == NULL)
+        {
+            connection_data = malloc(sizeof(ConnectionData));
+        }
+        memcpy(connection_data, (ConnectionData *)(CONNECTION_STATUS_START_ADDRESS + sizeof(__uint32_t)), sizeof(ConnectionData));
+        char *status_str = get_status_str(connection_data->status);
+        snprintf(buffer, STATUS_STRING_BUFFER_SIZE, "IP: %s | SSID: %s | Status: %s",
+                 connection_data->ipv4_address, connection_data->ssid,
+                 status_str);
+    }
 
     if (show_bar)
     {
-        char buffer[128];
-        char *status_str = get_status_str(connection_data->status);
-        sprintf(buffer, "IP: %s | SSID: %s | Status: %s",
-                connection_data->ipv4_address, connection_data->ssid,
-                status_str);
+        locate(0, 24);
         printf("\033p");
-        if (strlen(buffer) % 2 == 1)
-        {
-            printf(" ");
-        }
-        for (int i = 0; i < (80 - strlen(buffer)) / 2; i++)
-        {
-            printf(" ");
-        }
-        printf(buffer);
-        for (int i = 0; i < (80 - strlen(buffer)) / 2; i++)
-        {
-            printf(" ");
-        }
+        int bufferLength = strlen(buffer);
+        int totalPadding = STATUS_STRING_BUFFER_SIZE - bufferLength;
+        int leftPadding = totalPadding / 2;
+        int rightPadding = totalPadding - leftPadding;
+
+        printf("%*s%s%*s", leftPadding, "", buffer, rightPadding, "");
         printf("\033q");
     }
 
     check_latest_release();
-    return connection_data->status;
+    return err;
 }
 
 bool check_latest_release()
 {
     // Check if the latest release is available
-    if (connection_data->status == CONNECTED_WIFI_IP)
+    if (connection_data != NULL)
     {
-        if (poll_latest_release)
+        if (connection_data->status == CONNECTED_WIFI_IP)
         {
-            poll_latest_release = false;
-            int err = send_sync_command(GET_LATEST_RELEASE, NULL, (__uint16_t)0, 10, false);
-            if (err == 0)
+            if (poll_latest_release)
             {
-                char *latest_release = (char *)(LATEST_RELEASE_START_ADDRESS + sizeof(__uint32_t));
-                // The latest release is the same as the current version or not?
-                latest_release_available = strlen(latest_release) > 0;
+                poll_latest_release = false;
+                int err = send_sync_command(GET_LATEST_RELEASE, NULL, (__uint16_t)0, 10, false);
+                if (err == 0)
+                {
+                    char *latest_release = (char *)(LATEST_RELEASE_START_ADDRESS + sizeof(__uint32_t));
+                    // The latest release is the same as the current version or not?
+                    latest_release_available = strlen(latest_release) > 0;
+                }
             }
         }
     }

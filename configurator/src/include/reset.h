@@ -8,6 +8,6 @@
 #include "screen.h"
 #include "commands.h"
 
-__uint8_t reset();
+__uint16_t reset();
 
 #endif /*RESET_H_*/

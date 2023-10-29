@@ -3,7 +3,6 @@
 
 #include <sys/types.h>
 #include <stdio.h>
-#include <stdbool.h>
 #include <string.h>
 
 #include "helper.h"
@@ -30,7 +29,7 @@ typedef enum
     HARDDISKS_FOLDER_NOTFOUND, // Hard disks folder error
 } StorageStatus;
 
-#define MAX_FOLDER_LENGTH 128        // Max length of the folder names
+#define MAX_FOLDER_LENGTH 128 // Max length of the folder names
 typedef struct sd_data
 {
     char roms_folder[MAX_FOLDER_LENGTH];      // ROMs folder name
@@ -46,8 +45,6 @@ typedef struct sd_data
     __uint16_t floppies_folder_status;        // Floppies folder status
     __uint16_t harddisks_folder_status;       // Hard disks folder status
 } SdCardData;
-
-extern SdCardData *sd_card_data;
 
 #ifdef _DEBUG
 static SdCardData sdCardDataExample = {
@@ -65,11 +62,11 @@ static SdCardData sdCardDataExample = {
     .status = SD_CARD_MOUNTED};
 #endif
 
-//__uint8_t storage_menu();
-__uint16_t get_storage_status(bool show_bar);
-__uint8_t check_folder_roms();
-__uint8_t check_folder_floppies();
-__uint8_t check_folder_floppies_db();
-__uint8_t check_folder_harddisks();
+__uint16_t get_storage_status(__uint16_t show_bar);
+__uint16_t check_folder_roms();
+__uint16_t check_folder_floppies();
+__uint16_t check_folder_floppies_db();
+__uint16_t check_folder_harddisks();
+void init_storage();
 
 #endif // STORAGE_H

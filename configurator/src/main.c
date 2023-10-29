@@ -61,7 +61,7 @@ static MenuItem menuItems[] = {
     {EXIT_OPTION, EXIT_OPTION_LINE, "Exit"}};
 
 // Flag if loading from ROM boot or GEM program
-static bool is_rom_boot = false;
+static __uint16_t is_rom_boot = FALSE;
 
 // Modify if more items added before this selector
 static __int8_t delay_toogle_selector_index = 5;
@@ -105,11 +105,11 @@ static __int8_t get_number_active_wait(CallbackFunction networkCallback, Callbac
                 // The order of the call matters. Check the usage of the memory
                 if (storageCallback != NULL)
                 {
-                    storageCallback(true);
+                    storageCallback(TRUE);
                 }
                 if (networkCallback != NULL)
                 {
-                    networkCallback(true);
+                    networkCallback(TRUE);
                 }
                 // Change the DELAY_TOGGLE_SELECTOR_OPTION description according to the value of is_delay_option_enabled()
                 if (is_delay_option_enabled())
@@ -180,9 +180,12 @@ static int run()
         initMedResolution(palette);
     }
 
-    __uint8_t err = read_config();
+    init_config();
+    init_connection_status();
+    init_storage();
+    __uint16_t err = read_config();
 
-    __uint8_t feature = err; // If the config is not loaded, exit the program. Otherwise, show the menu
+    __uint16_t feature = err; // If the config is not loaded, exit the program. Otherwise, show the menu
     while (feature == 0)
     {
         feature = menu();

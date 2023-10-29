@@ -3,7 +3,6 @@
 
 #include <sys/types.h>
 #include <stdio.h>
-#include <osbind.h>
 
 #include "config.h"
 
@@ -97,16 +96,16 @@ static __uint32_t random_number = 0x0;
 
 #define max(a, b) ((a) > (b) ? (a) : (b))
 
-int get_number_within_range(char *prompt, __uint8_t num_items, __uint8_t first_value, char cancel_char);
+int get_number_within_range(char *prompt, __uint16_t num_items, __uint16_t first_value, char cancel_char);
 int send_async_command(__uint16_t command, void *payload, __uint16_t payload_size);
-int send_sync_command(__uint16_t command, void *payload, __uint16_t payload_size, __uint32_t timeout, bool show_spinner);
-void please_wait(char *message, __uint8_t seconds);
-void please_wait_silent(__uint8_t seconds);
-void sleep_seconds(__uint8_t seconds, bool silent);
+int send_sync_command(__uint16_t command, void *payload, __uint16_t payload_size, __uint32_t timeout, __uint16_t show_spinner);
+void please_wait(char *message, __uint16_t seconds);
+void please_wait_silent(__uint16_t seconds);
+void sleep_seconds(__uint16_t seconds, __uint16_t silent);
 void spinner(__uint16_t spinner_update_frequency);
-char *read_files_from_memory(__uint8_t *memory_location);
-__uint8_t get_file_count(char *file_array);
-char *print_file_at_index(char *current_ptr, __uint8_t index, int num_columns);
+char *read_files_from_memory(char *memory_location);
+__uint16_t get_file_count(char *file_array);
+char *print_file_at_index(char *current_ptr, __uint16_t index, int num_columns);
 int display_paginated_content(char *file_array, int num_files, int page_size, char *item_name, __uint32_t *keypress);
 void print_centered(const char *str, int screen_width);
 

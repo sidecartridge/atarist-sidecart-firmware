@@ -3,7 +3,6 @@
 
 #include <sys/types.h>
 #include <stdio.h>
-#include <stdbool.h>
 #include <string.h>
 
 #include "helper.h"
@@ -58,11 +57,16 @@ static ConfigData config_data_example = {
 };
 #endif
 
+#define FALSE 0
+#define TRUE 1
+
 #define STATUS_STRING_BUFFER_SIZE 80 // Buffer size to display
 
-__uint8_t read_config();
-__uint8_t configuration();
-bool is_delay_option_enabled();
-__uint8_t toggle_delay_option(void);
+ConfigEntry *get_config_entry(char *key);
+__uint16_t read_config();
+__uint16_t configuration();
+__uint16_t is_delay_option_enabled();
+__uint16_t toggle_delay_option(void);
+void init_config();
 
 #endif /* CONFIG_H_ */

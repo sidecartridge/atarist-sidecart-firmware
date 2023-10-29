@@ -3,9 +3,9 @@
 //================================================================
 // Floppy selector
 
-__uint8_t floppy_db()
+__uint16_t floppy_db()
 {
-    __uint8_t alphanum_bar_y_pos = 4;
+    __uint16_t alphanum_bar_y_pos = 4;
 
     void erase_table(int y_pos, int num_lines)
     {
@@ -45,8 +45,8 @@ __uint8_t floppy_db()
     print_alphanum_bar();
     int padding = 2;
     char nav_arrow_keys[36] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-    __uint8_t nav_arrow_keys_index = 0;
-    bool first_time = true;
+    __uint16_t nav_arrow_keys_index = 0;
+    __uint16_t first_time = TRUE;
     char key = 'A';
     long fullkey = 0;
     while (1)
@@ -56,7 +56,7 @@ __uint8_t floppy_db()
             print_alphanum_bar();
             if (first_time)
             {
-                first_time = false;
+                first_time = FALSE;
             }
             else
             {
@@ -78,7 +78,7 @@ __uint8_t floppy_db()
                 locate(0, alphanum_bar_y_pos);
                 if ((key >= 65) && (key <= 90))
                 {
-                    for (__uint8_t i = 0; i < padding + (key - 65); i++)
+                    for (__uint16_t i = 0; i < padding + (key - 65); i++)
                     {
                         printf("\033C\033C");
                     }
@@ -86,7 +86,7 @@ __uint8_t floppy_db()
                 }
                 else
                 {
-                    for (__uint8_t i = 0; i < padding + 26 + (key - 48); i++)
+                    for (__uint16_t i = 0; i < padding + 26 + (key - 48); i++)
                     {
                         printf("\033C\033C");
                     }
@@ -94,14 +94,14 @@ __uint8_t floppy_db()
                 }
                 printf("\033p%c\033q\r", key);
                 __uint16_t key16 = ((__uint16_t)key) & 0xFF;
-                send_sync_command(QUERY_FLOPPY_DB, &key16, 2, 1, false);
+                send_sync_command(QUERY_FLOPPY_DB, &key16, 2, 1, FALSE);
 
                 int num_files = -1;
-                __uint32_t db_file_list_mem = DB_FILES_LIST_START_ADDRESS;
+                __uint32_t db_file_list_mem = (__uint32_t)DB_FILES_LIST_START_ADDRESS;
 #ifdef _DEBUG
                 printf("Reading db file list from memory address: 0x%08X\r\n", db_file_list_mem);
 #endif
-                char *file_array = read_files_from_memory((__uint8_t *)db_file_list_mem);
+                char *file_array = read_files_from_memory((char *)db_file_list_mem);
 
                 if (!file_array)
                 {
@@ -123,7 +123,7 @@ __uint8_t floppy_db()
 
                         printf("Loading floppy. Wait until the led in the board blinks a 'F' in morse...");
 
-                        send_sync_command(DOWNLOAD_FLOPPY, &app_number, 2, 30, true);
+                        send_sync_command(DOWNLOAD_FLOPPY, &app_number, 2, 30, TRUE);
 
                         __uint16_t download_status = *((__uint16_t *)(DB_FILES_LIST_START_ADDRESS));
 
@@ -147,7 +147,7 @@ __uint8_t floppy_db()
                         erase_table(alphanum_bar_y_pos + 1, 18);
                         key = last_key_pressed & 0xFF;
                         fullkey = last_key_pressed;
-                        first_time = true;
+                        first_time = TRUE;
                     }
                 }
             }

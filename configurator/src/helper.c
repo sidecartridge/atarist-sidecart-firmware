@@ -3,31 +3,6 @@
 static __uint16_t spinner_loop = 0;
 static char spinner_chars[] = {'\\', '|', '/', '-'};
 
-#ifdef _DEBUG
-#include <ctype.h>
-
-void dump_hex(const void *data, size_t size)
-{
-    locate(0, 24);
-    const unsigned char *byte_data = data;
-    // Print hex values
-    for (size_t i = 0; i < size; i++)
-    {
-        printf("%02x ", byte_data[i]);
-    }
-
-    printf("  "); // Some space between hex and chars
-
-    // Print characters
-    for (size_t i = 0; i < size; i++)
-    {
-        // Check if the character is printable; if not, print a dot
-        char ch = isprint(byte_data[i]) ? byte_data[i] : '.';
-        printf("%c", ch);
-    }
-}
-#endif
-
 // Function to convert a character to lowercase
 char to_lowercase(char c)
 {
@@ -38,7 +13,7 @@ char to_lowercase(char c)
     return c;
 }
 
-int get_number_within_range(char *prompt, __uint8_t num_items, __uint8_t first_value, char cancel_char)
+int get_number_within_range(char *prompt, __uint16_t num_items, __uint16_t first_value, char cancel_char)
 {
     char input[3];
     int number;
@@ -101,7 +76,7 @@ int send_async_command(__uint16_t command, void *payload, __uint16_t payload_siz
     {
         payload_size++;
     }
-    __uint32_t rom3_address = ROM3_MEMORY_START;
+    __uint32_t rom3_address = (__uint32_t)ROM3_MEMORY_START;
     __uint8_t command_header = *((volatile __uint8_t *)(rom3_address + PROTOCOL_HEADER));
     __uint8_t command_code = *((volatile __uint8_t *)(rom3_address + command));
     __uint8_t command_payload_size = *((volatile __uint8_t *)(rom3_address + payload_size)); // Always even!
@@ -128,14 +103,14 @@ int send_async_command(__uint16_t command, void *payload, __uint16_t payload_siz
     return 0;
 }
 
-int send_sync_command(__uint16_t command, void *payload, __uint16_t payload_size, __uint32_t timeout, bool show_spinner)
+int send_sync_command(__uint16_t command, void *payload, __uint16_t payload_size, __uint32_t timeout, __uint16_t show_spinner)
 {
     if (payload_size % 2 != 0)
     {
         payload_size++;
     }
     __uint32_t random_seed = *((volatile __uint32_t *)RANDOM_SEED_ADDRESS);
-    __uint32_t rom3_address = ROM3_MEMORY_START;
+    __uint32_t rom3_address = (__uint32_t)ROM3_MEMORY_START;
     __uint8_t command_header = *((volatile __uint8_t *)(rom3_address + PROTOCOL_HEADER));
     __uint8_t command_code = *((volatile __uint8_t *)(rom3_address + command));
     __uint8_t command_payload_size = *((volatile __uint8_t *)(rom3_address + payload_size + RANDOM_NUMBER_SIZE)); // Always even!
@@ -190,12 +165,12 @@ int send_sync_command(__uint16_t command, void *payload, __uint16_t payload_size
     return (active_wait == 0);
 }
 
-void sleep_seconds(__uint8_t seconds, bool silent)
+void sleep_seconds(__uint16_t seconds, __uint16_t silent)
 {
-    for (__uint8_t j = 0; j < seconds; j++)
+    for (__uint16_t j = 0; j < seconds; j++)
     {
         // Assuming PAL system; for NTSC, use 60.
-        for (__uint8_t i = 0; i < 50; i++)
+        for (__uint16_t i = 0; i < 50; i++)
         {
             if (!silent)
                 spinner(1);
@@ -213,21 +188,21 @@ void spinner(__uint16_t spinner_update_frequency)
     spinner_loop++;
 }
 
-void please_wait(char *message, __uint8_t seconds)
+void please_wait(char *message, __uint16_t seconds)
 {
     printf(message); // Show the message
     printf(" ");     // Leave a space for the spinner
-    sleep_seconds(seconds, false);
+    sleep_seconds(seconds, FALSE);
 }
 
-void please_wait_silent(__uint8_t seconds)
+void please_wait_silent(__uint16_t seconds)
 {
-    sleep_seconds(seconds, true);
+    sleep_seconds(seconds, TRUE);
 }
 
-char *read_files_from_memory(__uint8_t *memory_location)
+char *read_files_from_memory(char *memory_location)
 {
-    __uint8_t *current_ptr = memory_location;
+    char *current_ptr = memory_location;
     __uint16_t total_size = 0;
 
     // Calculate total size required
@@ -261,9 +236,9 @@ char *read_files_from_memory(__uint8_t *memory_location)
     return output_array;
 }
 
-__uint8_t get_file_count(char *file_array)
+__uint16_t get_file_count(char *file_array)
 {
-    __uint8_t count = 0;
+    __uint16_t count = 0;
     char *current_ptr = file_array;
 
     while (*current_ptr)
@@ -279,15 +254,14 @@ __uint8_t get_file_count(char *file_array)
     return count;
 }
 
-char *print_file_at_index(char *current_ptr, __uint8_t index, int num_columns)
+char *print_file_at_index(char *current_ptr, __uint16_t index, int num_columns)
 {
 
-    __uint8_t current_index = 0;
+    __uint16_t current_index = 0;
     while (*current_ptr)
     { // As long as we don't hit the double null terminator
         if (current_index == index)
         {
-            printf("\033K");       // Erase to end of line (VT52)
             int chars_printed = 0; // To keep track of how many characters are printed
 
             while (*current_ptr)
@@ -298,13 +272,13 @@ char *print_file_at_index(char *current_ptr, __uint8_t index, int num_columns)
             }
 
             // If num_columns is provided, fill the rest of the line with spaces
-            // if (num_columns > 0)
-            // {
-            //     for (; chars_printed < num_columns; chars_printed++)
-            //     {
-            //         putchar(' ');
-            //     }
-            // }
+            if (num_columns > 0)
+            {
+                for (; chars_printed < num_columns; chars_printed++)
+                {
+                    putchar(' ');
+                }
+            }
 
             putchar('\r');
             putchar('\n');
@@ -325,7 +299,7 @@ char *print_file_at_index(char *current_ptr, __uint8_t index, int num_columns)
 
 int display_paginated_content(char *file_array, int num_files, int page_size, char *item_name, __uint32_t *keypress)
 {
-    void highlight_and_print(char *file_array, __uint8_t index, __uint8_t offset, int current_line, int num_columns, bool highlight)
+    void highlight_and_print(char *file_array, __uint16_t index, __uint16_t offset, int current_line, int num_columns, __uint16_t highlight)
     {
         locate(0, current_line + 2 + index - offset);
         if (highlight)
@@ -395,10 +369,10 @@ int display_paginated_content(char *file_array, int num_files, int page_size, ch
         }
 
         long key;
-        bool change_page = false;
+        __uint16_t change_page = FALSE;
         while ((selected_rom < 0) && (!change_page))
         {
-            highlight_and_print(file_array, current_index, page_size * page_number, current_line, 80, true);
+            highlight_and_print(file_array, current_index, page_size * page_number, current_line, 80, TRUE);
             key = Crawcin();
             if (keypress != NULL)
             {
@@ -409,7 +383,7 @@ int display_paginated_content(char *file_array, int num_files, int page_size, ch
             case KEY_UP_ARROW:
                 if (current_index > start_index)
                 {
-                    highlight_and_print(file_array, current_index, page_size * page_number, current_line, 80, false);
+                    highlight_and_print(file_array, current_index, page_size * page_number, current_line, 80, FALSE);
                     current_index = current_index - 1;
                 }
                 break;
@@ -417,7 +391,7 @@ int display_paginated_content(char *file_array, int num_files, int page_size, ch
             case KEY_DOWN_ARROW:
                 if (current_index < end_index)
                 {
-                    highlight_and_print(file_array, current_index, page_size * page_number, current_line, 80, false);
+                    highlight_and_print(file_array, current_index, page_size * page_number, current_line, 80, FALSE);
                     current_index = current_index + 1;
                 }
                 break;
@@ -426,7 +400,7 @@ int display_paginated_content(char *file_array, int num_files, int page_size, ch
                 {
                     page_number--;
                     current_index = page_number * page_size;
-                    change_page = true;
+                    change_page = TRUE;
                 }
                 break;
             case KEY_RIGHT_ARROW:
@@ -434,7 +408,7 @@ int display_paginated_content(char *file_array, int num_files, int page_size, ch
                 {
                     page_number++;
                     current_index = page_number * page_size;
-                    change_page = true;
+                    change_page = TRUE;
                 }
                 break;
             case KEY_ENTER:

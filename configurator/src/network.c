@@ -1,11 +1,10 @@
 #include "include/network.h"
 
-ConnectionStatus connection_status = DISCONNECTED;
-WifiScanData *wifiScanData = NULL;
-// ConnectionData *connection_data = (ConnectionData *)(CONNECTION_STATUS_START_ADDRESS + sizeof(__uint32_t));
-ConnectionData *connection_data = NULL;
-bool poll_latest_release = true;
-bool latest_release_available = false;
+static ConnectionData *connection_data = NULL;
+static ConnectionStatus connection_status = DISCONNECTED;
+
+static __uint16_t poll_latest_release = TRUE;
+static __uint16_t latest_release_available = FALSE;
 
 static void read_networks_from_memory(char *ssids, WifiNetworkInfo networks[], __uint16_t total_size)
 {
@@ -21,9 +20,9 @@ static void read_networks_from_memory(char *ssids, WifiNetworkInfo networks[], _
     current_ssid_position[0] = '\0'; // Null terminate the list of ssids
 }
 
-static __uint8_t get_network_count(char *file_array)
+static __uint16_t get_network_count(char *file_array)
 {
-    __uint8_t count = 0;
+    __uint16_t count = 0;
     char *current_ptr = file_array;
 
     while (*current_ptr)
@@ -93,10 +92,16 @@ char *get_status_str(ConnectionStatus status)
     return status_str;
 }
 
-__uint16_t get_connection_status(bool show_bar)
+void init_connection_status()
+{
+    connection_data = malloc(sizeof(ConnectionData));
+    memset(connection_data, 0, sizeof(ConnectionData));
+}
+
+__uint16_t get_connection_status(__uint16_t show_bar)
 {
     char buffer[STATUS_STRING_BUFFER_SIZE];
-    int err = send_sync_command(GET_IP_DATA, NULL, (__uint16_t)0, 5, false);
+    int err = send_sync_command(GET_IP_DATA, NULL, (__uint16_t)0, 5, FALSE);
 
     if (err != 0)
     {
@@ -132,8 +137,9 @@ __uint16_t get_connection_status(bool show_bar)
     return err;
 }
 
-bool check_latest_release()
+__uint16_t check_latest_release()
 {
+    latest_release_available = FALSE;
     // Check if the latest release is available
     if (connection_data != NULL)
     {
@@ -141,8 +147,8 @@ bool check_latest_release()
         {
             if (poll_latest_release)
             {
-                poll_latest_release = false;
-                int err = send_sync_command(GET_LATEST_RELEASE, NULL, (__uint16_t)0, 10, false);
+                poll_latest_release = FALSE;
+                int err = send_sync_command(GET_LATEST_RELEASE, NULL, 0, 10, FALSE);
                 if (err == 0)
                 {
                     char *latest_release = (char *)(LATEST_RELEASE_START_ADDRESS + sizeof(__uint32_t));
@@ -155,7 +161,7 @@ bool check_latest_release()
     return latest_release_available;
 }
 
-__uint8_t check_network_connection()
+__uint16_t check_network_connection()
 {
     if ((connection_data != NULL) && (connection_data->status != CONNECTED_WIFI_IP))
     {
@@ -167,7 +173,7 @@ __uint8_t check_network_connection()
     return 0; // ok
 }
 
-__uint8_t network_selector()
+__uint16_t network_selector()
 {
     PRINT_APP_HEADER(VERSION);
 
@@ -175,19 +181,20 @@ __uint8_t network_selector()
 
     locate(0, 2);
     printf("Scanning the network...");
-    send_sync_command(LAUNCH_SCAN_NETWORKS, NULL, (__uint16_t)0, 10, true);
+    send_sync_command(LAUNCH_SCAN_NETWORKS, NULL, (__uint16_t)0, 10, TRUE);
 
     printf("\r\033KRetrieving networks...");
-    send_sync_command(GET_SCANNED_NETWORKS, NULL, (__uint16_t)0, 10, true);
+    send_sync_command(GET_SCANNED_NETWORKS, NULL, (__uint16_t)0, 10, TRUE);
 
     printf("\r\n");
 
     int num_networks = -1;
-    __uint32_t network_list_mem = NETWORK_START_ADDRESS + sizeof(__uint32_t);
+    __uint32_t network_list_mem = (__uint32_t)(NETWORK_START_ADDRESS + sizeof(__uint32_t));
 
 #ifdef _DEBUG
     printf("Reading network list from memory address: 0x%08X\r\n", network_list_mem);
 #endif
+
     WifiScanData *wifiScanDataBuff = (WifiScanData *)network_list_mem;
     char *network_array = malloc(MAX_SSID_LENGTH * wifiScanDataBuff->count + 1);
     read_networks_from_memory(network_array, wifiScanDataBuff->networks, wifiScanDataBuff->count);
@@ -274,7 +281,7 @@ __uint8_t network_selector()
     return 0; // Return 0 to avoid to force a reset
 }
 
-__uint8_t roms_from_network_selector()
+__uint16_t roms_from_network_selector()
 {
     PRINT_APP_HEADER(VERSION);
 
@@ -291,14 +298,14 @@ __uint8_t roms_from_network_selector()
     __uint16_t *network_file_list_mem = (__uint16_t *)(NETWORK_FILE_LIST_START_ADDRESS + sizeof(__uint32_t));
 
     printf("Getting ROMs list...");
-    send_sync_command(GET_ROMS_JSON_FILE, NULL, (__uint16_t)0, 10, true);
+    send_sync_command(GET_ROMS_JSON_FILE, NULL, (__uint16_t)0, 10, TRUE);
 
     printf("\r\n");
 
 #ifdef _DEBUG
     printf("Reading file list from memory address: 0x%08X\r\n", network_file_list_mem);
 #endif
-    char *file_array = read_files_from_memory((__uint8_t *)network_file_list_mem);
+    char *file_array = read_files_from_memory((char *)network_file_list_mem);
 
     if (!file_array)
     {
@@ -323,14 +330,14 @@ __uint8_t roms_from_network_selector()
 
     printf("Downloading ROM. Wait until the led in the board blinks a 'E' or 'D' in morse...");
 
-    send_sync_command(DOWNLOAD_ROM, &rom_number, 2, 30, true);
+    send_sync_command(DOWNLOAD_ROM, &rom_number, 2, 30, TRUE);
 
     printf("\r\033KROM file downloaded. ");
 
     return 1; // Positive is OK
 }
 
-__uint8_t wifi_menu()
+__uint16_t wifi_menu()
 {
     if (connection_data->status == DISCONNECTED)
     {
@@ -355,7 +362,7 @@ __uint8_t wifi_menu()
             if (Cconis())
             {
                 int fullkey = Crawcin();
-                __uint8_t key = fullkey & 0xFF;
+                __uint16_t key = fullkey & 0xFF;
                 if (fullkey == KEY_ESC)
                 {
                     // Back to main menu

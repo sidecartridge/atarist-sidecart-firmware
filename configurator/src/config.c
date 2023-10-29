@@ -1,6 +1,20 @@
 #include "include/config.h"
 
-static bool is_delay_option = false;
+static __uint16_t is_delay_option = FALSE;
+
+static ConfigData *configData = NULL;
+
+ConfigEntry *get_config_entry(char *key)
+{
+    for (size_t i = 0; i < configData->count; i++)
+    {
+        if (strcmp(configData->entries[i].key, key) == 0)
+        {
+            return &configData->entries[i];
+        }
+    }
+    return NULL;
+}
 
 static void print_table(ConfigData *configData)
 {
@@ -47,14 +61,24 @@ static void print_table(ConfigData *configData)
     printf("+----+----------------------+------------------------------------------+----------+\r\n");
 }
 
-ConfigData load_all_entries()
+void init_config()
 {
-    __uint8_t count = 0;
-    __uint32_t currentAddress = CONFIG_START_ADDRESS + sizeof(__uint32_t);
-    ConfigData configData = {
-        .magic = *((volatile __uint32_t *)currentAddress),
-        .count = 0,
-    };
+    // Dynamically allocate memory for ConfigData
+    configData = malloc(sizeof(ConfigData));
+    if (configData != NULL)
+    {
+        configData->magic = 0;
+        configData->count = 0;
+    }
+}
+
+void load_all_entries()
+{
+    __uint16_t count = 0;
+    __uint32_t currentAddress = (__uint32_t)(CONFIG_START_ADDRESS + sizeof(__uint32_t));
+    // Dynamically allocate memory for ConfigData
+    configData->magic = *((volatile __uint32_t *)currentAddress);
+    configData->count = 0;
     currentAddress += sizeof(__uint32_t);
     while (1)
     {
@@ -68,10 +92,9 @@ ConfigData load_all_entries()
         {
             break; // Exit the loop if we encounter a key length of 0 (end of entries)
         }
-        configData.entries[configData.count] = entry;
-        configData.count++;
+        configData->entries[configData->count] = entry;
+        configData->count++;
     }
-    return configData;
 }
 
 static char *read_input(__uint16_t type)
@@ -190,7 +213,7 @@ static char *read_input(__uint16_t type)
     return result;
 }
 
-__uint8_t configuration()
+__uint16_t configuration()
 {
     PRINT_APP_HEADER(VERSION);
 
@@ -198,20 +221,20 @@ __uint8_t configuration()
 
     printf("Loading configuration...");
 
-    send_sync_command(GET_CONFIG, NULL, 0, 10, true);
+    send_sync_command(GET_CONFIG, NULL, 0, 10, TRUE);
 
     printf("\r\n");
 
-    ConfigData configData = load_all_entries();
+    load_all_entries();
 
     while (1)
     {
-        print_table(&configData);
+        print_table(configData);
 
         char *prompt;
-        asprintf(&prompt, "Enter the parameter to modify (1 to %d) or [C]ancel: ", configData.count);
+        asprintf(&prompt, "Enter the parameter to modify (1 to %d) or [C]ancel: ", configData->count);
 
-        int param_index = get_number_within_range(prompt, configData.count, 1, 'C');
+        int param_index = get_number_within_range(prompt, configData->count, 1, 'C');
 
         if (param_index <= 0)
         {
@@ -221,32 +244,32 @@ __uint8_t configuration()
 
         param_index = param_index - 1;
 
-        printf("\r\n%s = %s\r\r\n", configData.entries[param_index].key, configData.entries[param_index].value);
-        char *input = read_input(configData.entries[param_index].dataType);
+        printf("\r\n%s = %s\r\r\n", configData->entries[param_index].key, configData->entries[param_index].value);
+        char *input = read_input(configData->entries[param_index].dataType);
         printf("\r\n");
 
         printf("The input is: %s\r\n", input);
-        strncpy(configData.entries[param_index].value, input, MAX_STRING_VALUE_LENGTH);
+        strncpy(configData->entries[param_index].value, input, MAX_STRING_VALUE_LENGTH);
 
         printf("Saving configuration...");
 
-        switch (configData.entries[param_index].dataType)
+        switch (configData->entries[param_index].dataType)
         {
         case TYPE_INT:
-            send_sync_command(PUT_CONFIG_INTEGER, &configData.entries[param_index], sizeof(ConfigEntry), 10, false);
+            send_sync_command(PUT_CONFIG_INTEGER, &configData->entries[param_index], sizeof(ConfigEntry), 10, FALSE);
             break;
         case TYPE_BOOL:
-            send_sync_command(PUT_CONFIG_BOOL, &configData.entries[param_index], sizeof(ConfigEntry), 10, false);
+            send_sync_command(PUT_CONFIG_BOOL, &configData->entries[param_index], sizeof(ConfigEntry), 10, FALSE);
             break;
         case TYPE_STRING:
-            send_sync_command(PUT_CONFIG_STRING, &configData.entries[param_index], sizeof(ConfigEntry), 10, false);
+            send_sync_command(PUT_CONFIG_STRING, &configData->entries[param_index], sizeof(ConfigEntry), 10, FALSE);
             break;
         default:
             printf("Unknown data type.\r\n");
             break;
         }
 
-        send_sync_command(SAVE_CONFIG, NULL, 0, 10, true);
+        send_sync_command(SAVE_CONFIG, NULL, 0, 10, TRUE);
         printf("\r\n");
 
         free(input);
@@ -255,11 +278,11 @@ __uint8_t configuration()
     }
 }
 
-__uint8_t read_config()
+__uint16_t read_config()
 {
 
 #ifndef _DEBUG
-    int err = send_sync_command(GET_CONFIG, NULL, 0, 10, false);
+    int err = send_sync_command(GET_CONFIG, NULL, 0, 10, FALSE);
 
     if (err != 0)
     {
@@ -267,25 +290,25 @@ __uint8_t read_config()
         return 1;
     }
 
-    ConfigData configData = load_all_entries();
+    load_all_entries();
 
-    for (size_t i = 0; i < configData.count; i++)
+    for (size_t i = 0; i < configData->count; i++)
     {
-        if (strcmp(configData.entries[i].key, "DELAY_ROM_EMULATION") == 0)
+        if (strcmp(configData->entries[i].key, "DELAY_ROM_EMULATION") == 0)
         {
-            is_delay_option = strcmp(configData.entries[i].value, "true") == 0;
+            is_delay_option = strcmp(configData->entries[i].value, "true") == 0;
         }
     }
 #endif
     return 0;
 }
 
-bool is_delay_option_enabled(void)
+__uint16_t is_delay_option_enabled(void)
 {
     return is_delay_option;
 }
 
-__uint8_t toggle_delay_option(void)
+__uint16_t toggle_delay_option(void)
 {
     PRINT_APP_HEADER(VERSION);
 
@@ -297,7 +320,7 @@ __uint8_t toggle_delay_option(void)
     strncpy(entry->value, is_delay_option ? "true" : "false", MAX_STRING_VALUE_LENGTH);
     entry->dataType = TYPE_BOOL;
 
-    send_sync_command(PUT_CONFIG_BOOL, entry, sizeof(ConfigEntry), 10, false);
+    send_sync_command(PUT_CONFIG_BOOL, entry, sizeof(ConfigEntry), 10, FALSE);
 
     free(entry);
 

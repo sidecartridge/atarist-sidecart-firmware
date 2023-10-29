@@ -1,6 +1,6 @@
 #include "include/reset.h"
 
-__uint8_t reset()
+__uint16_t reset()
 {
     char userResponse;
 
@@ -14,7 +14,7 @@ __uint8_t reset()
     // Check if the input is 'Y' or 'y'
     if (userResponse == 'Y' || userResponse == 'y')
     {
-        send_sync_command(RESET_DEVICE, NULL, 0, 10, false);
+        send_sync_command(RESET_DEVICE, NULL, 0, 10, FALSE);
         please_wait("\r\033KResetting SidecarT...", 10);
         printf("\r\033KSidecarT has been reset.\r\n");
     }

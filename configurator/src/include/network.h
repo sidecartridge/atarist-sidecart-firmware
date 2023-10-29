@@ -3,7 +3,6 @@
 
 #include <sys/types.h>
 #include <stdio.h>
-#include <stdbool.h>
 #include <string.h>
 
 #include "helper.h"
@@ -64,11 +63,6 @@ typedef struct connection_data
     __uint16_t status;                      // connection status
 } ConnectionData;
 
-extern ConnectionStatus connection_status;
-extern WifiScanData *wifiScanData;
-extern ConnectionData *connection_data;
-extern __uint16_t previous_connection_status; // Keep track of the previous connection status
-
 #ifdef _DEBUG
 static WifiScanData wifi_scan_data_example = {
     .magic = 0x12345678,
@@ -112,11 +106,12 @@ static ConnectionData connection_data_example = {
     .status = CONNECTED_WIFI_IP};
 #endif
 
-bool check_latest_release();
-__uint8_t wifi_menu();
-__uint16_t force_connection_status(bool show_bar);
-__uint16_t get_connection_status(bool show_bar);
-__uint8_t roms_from_network_selector();
-__uint8_t check_network_connection();
+__uint16_t check_latest_release();
+__uint16_t wifi_menu();
+__uint16_t force_connection_status(__uint16_t show_bar);
+__uint16_t get_connection_status(__uint16_t show_bar);
+__uint16_t roms_from_network_selector();
+__uint16_t check_network_connection();
+void init_connection_status();
 
 #endif // NETWORK_H

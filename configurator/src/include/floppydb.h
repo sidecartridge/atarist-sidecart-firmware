@@ -3,7 +3,6 @@
 
 #include <sys/types.h>
 #include <stdio.h>
-#include <osbind.h>
 
 #include "commands.h"
 #include "screen.h"
@@ -11,6 +10,6 @@
 #include "storage.h"
 #include "network.h"
 
-__uint8_t floppy_db();
+__uint16_t floppy_db();
 
 #endif /* FLOPPYDB_H_ */

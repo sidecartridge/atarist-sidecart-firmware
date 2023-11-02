@@ -284,26 +284,15 @@ char *print_file_at_index(char *current_ptr, __uint16_t index, int num_columns)
     { // As long as we don't hit the double null terminator
         if (current_index == index)
         {
-            int chars_printed = 0; // To keep track of how many characters are printed
+            // Print the entire string using printf
+            printf("\033K%s", current_ptr);
 
             while (*current_ptr)
             {
-                putchar(*current_ptr);
-                current_ptr++;
-                chars_printed++;
+                *current_ptr++;
             }
 
-            // If num_columns is provided, fill the rest of the line with spaces
-            if (num_columns > 0)
-            {
-                for (; chars_printed < num_columns; chars_printed++)
-                {
-                    putchar(' ');
-                }
-            }
-
-            putchar('\r');
-            putchar('\n');
+            // printf("\r\n");
             return current_ptr;
         }
 

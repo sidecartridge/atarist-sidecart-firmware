@@ -166,8 +166,7 @@ __uint16_t check_network_connection()
     if ((connection_data != NULL) && (connection_data->status != CONNECTED_WIFI_IP))
     {
         printf("No WiFi connection found. Connect to a WiFi network first.\r\n");
-        printf("Press any key to exit...\r\n");
-        getchar();
+        press_key("Press any key to exit...\r\n");
         return 1; // Error
     }
     return 0; // ok
@@ -202,10 +201,12 @@ __uint16_t network_selector()
     if (!network_array)
     {
         printf("No networks found!\r\n");
-        printf("Press any key to exit...\r\n");
+        press_key("Press any key to exit...\r\n");
         // Back to main menu
         return 0; // 0 is go to menu
     }
+
+    flush_kbd();
 
     __int16_t network_number = display_paginated_content(network_array, get_network_count(network_array), ELEMENTS_PER_PAGE, "Networks", NULL);
 
@@ -214,6 +215,8 @@ __uint16_t network_selector()
         // Back to main menu
         return 0; // 0 is go to menu
     }
+
+    flush_kbd();
 
     locate(0, 22);
 
@@ -302,6 +305,8 @@ __uint16_t roms_from_network_selector()
 
     printf("\r\n");
 
+    flush_kbd();
+
 #ifdef _DEBUG
     printf("Reading file list from memory address: 0x%08X\r\n", network_file_list_mem);
 #endif
@@ -310,7 +315,7 @@ __uint16_t roms_from_network_selector()
     if (!file_array)
     {
         printf("No files found. Check if your network connection is working!\r\n");
-        printf("Press any key to exit...\r\n");
+        press_key("Press any key to exit...\r\n");
         // Back to main menu
         return 0; // 0 is go to menu
     }
@@ -357,11 +362,13 @@ __uint16_t wifi_menu()
         printf("\r\n");
         printf("Press [R]eset to restart the Wifi configuration. [ESC] to exit:");
 
+        flush_kbd();
+
         while (1)
         {
-            if (Cconis())
+            if (Bconstat(2) != 0)
             {
-                int fullkey = Crawcin();
+                int fullkey = Bconin(2);
                 __uint16_t key = fullkey & 0xFF;
                 if (fullkey == KEY_ESC)
                 {

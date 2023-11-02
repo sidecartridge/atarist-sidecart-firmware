@@ -3,6 +3,28 @@
 static __uint16_t spinner_loop = 0;
 static char spinner_chars[] = {'\\', '|', '/', '-'};
 
+void flush_kbd(void)
+{
+    // while (Bconstat(2) != 0)
+    // {
+    //     (void)Bconin(2);
+    // }
+    while (Cconis() != 0)
+    {
+        (void)Cnecin();
+    }
+}
+
+void press_key(char *message)
+{
+    if (message != NULL)
+    {
+        printf(message);
+    }
+    flush_kbd();
+    (void)Bconin(2);
+}
+
 // Function to convert a character to lowercase
 char to_lowercase(char c)
 {
@@ -368,12 +390,13 @@ int display_paginated_content(char *file_array, int num_files, int page_size, ch
             printf("\033K"); // Erase to end of line (VT52)
         }
 
+        flush_kbd();
         long key;
         __uint16_t change_page = FALSE;
         while ((selected_rom < 0) && (!change_page))
         {
             highlight_and_print(file_array, current_index, page_size * page_number, current_line, 80, TRUE);
-            key = Crawcin();
+            key = Bconin(2);
             if (keypress != NULL)
             {
                 *keypress = key;

@@ -96,6 +96,8 @@ static __uint32_t random_number = 0x0;
 
 #define max(a, b) ((a) > (b) ? (a) : (b))
 
+void flush_kbd(void);
+void press_key(char *message);
 int get_number_within_range(char *prompt, __uint16_t num_items, __uint16_t first_value, char cancel_char);
 int send_async_command(__uint16_t command, void *payload, __uint16_t payload_size);
 int send_sync_command(__uint16_t command, void *payload, __uint16_t payload_size, __uint32_t timeout, __uint16_t show_spinner);

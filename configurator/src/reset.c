@@ -9,6 +9,9 @@ __uint16_t reset()
     printf("WARNING: Resetting SidecarT will delete any ROM or image in FLASH and will\r\n");
     printf("return to the default configuration.\r\n\r\n");
     printf("Do you still want to continue? [Y/n]: ");
+
+    flush_kbd();
+
     userResponse = getchar(); // Get user input
 
     // Check if the input is 'Y' or 'y'

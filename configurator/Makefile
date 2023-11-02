@@ -33,7 +33,7 @@ endif
 
 # LINKER PARAMETERS
 # Add the -s option to strip the binary
-LINKFLAGS=-nostdlib -L$(LIBCMINI)/lib -lcmini -lgcc -Wl,--traditional-format -s
+LINKFLAGS=-nostdlib -L$(LIBCMINI)/lib -lcmini -lgcc -Wl,--traditional-format -O2 -fomit-frame-pointer -s 
 
 _OBJS = 
 

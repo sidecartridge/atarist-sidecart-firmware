@@ -3,6 +3,28 @@
 static __uint16_t spinner_loop = 0;
 static char spinner_chars[] = {'\\', '|', '/', '-'};
 
+void flush_kbd(void)
+{
+    // while (Bconstat(2) != 0)
+    // {
+    //     (void)Bconin(2);
+    // }
+    while (Cconis() != 0)
+    {
+        (void)Cnecin();
+    }
+}
+
+void press_key(char *message)
+{
+    if (message != NULL)
+    {
+        printf(message);
+    }
+    flush_kbd();
+    (void)Bconin(2);
+}
+
 // Function to convert a character to lowercase
 char to_lowercase(char c)
 {
@@ -262,26 +284,15 @@ char *print_file_at_index(char *current_ptr, __uint16_t index, int num_columns)
     { // As long as we don't hit the double null terminator
         if (current_index == index)
         {
-            int chars_printed = 0; // To keep track of how many characters are printed
+            // Print the entire string using printf
+            printf("\033K%s", current_ptr);
 
             while (*current_ptr)
             {
-                putchar(*current_ptr);
-                current_ptr++;
-                chars_printed++;
+                *current_ptr++;
             }
 
-            // If num_columns is provided, fill the rest of the line with spaces
-            if (num_columns > 0)
-            {
-                for (; chars_printed < num_columns; chars_printed++)
-                {
-                    putchar(' ');
-                }
-            }
-
-            putchar('\r');
-            putchar('\n');
+            // printf("\r\n");
             return current_ptr;
         }
 
@@ -368,12 +379,13 @@ int display_paginated_content(char *file_array, int num_files, int page_size, ch
             printf("\033K"); // Erase to end of line (VT52)
         }
 
+        flush_kbd();
         long key;
         __uint16_t change_page = FALSE;
         while ((selected_rom < 0) && (!change_page))
         {
             highlight_and_print(file_array, current_index, page_size * page_number, current_line, 80, TRUE);
-            key = Crawcin();
+            key = Bconin(2);
             if (keypress != NULL)
             {
                 *keypress = key;

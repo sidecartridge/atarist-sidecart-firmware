@@ -51,7 +51,7 @@ __uint16_t floppy_db()
     long fullkey = 0;
     while (1)
     {
-        if (Cconis() || first_time)
+        if ((Bconstat(2) != 0) || first_time)
         {
             print_alphanum_bar();
             if (first_time)
@@ -60,7 +60,7 @@ __uint16_t floppy_db()
             }
             else
             {
-                fullkey = Crawcin();
+                fullkey = Bconin(2);
                 key = fullkey & 0xFF;
             }
             if (key == KEY_ESC)

@@ -103,9 +103,9 @@ adjust_mem:
     move.l    $436.w,a4		; Memtop
     move.w    #$0300,sr		; Set user mode
 
-    lea   	 -8(a4),sp		; Trick the system into
-    clr.l    (sp)
-    move.l	a3,4(sp)	
+    lea   	 -8(a4),sp		; Set the stack pointer to the top of memory
+    clr.l    (sp)			; 
+    move.l	a3,4(sp)		; Set the basepage as the memory bottom	
 
 run_configurator:
 
@@ -117,7 +117,6 @@ run_configurator:
 ; a6 - program base address
 ; d2 - program length in long words (bytes/4)
 .common:
-; First test if enough RAM available
 	move.l 4(sp),a0 	;tpa begin
 	move.l 4(a0),d0 	;tpa end
 	sub.l a0,d0 		;available len
@@ -129,10 +128,10 @@ run_configurator:
 	add.l #512,d1 		;for basepage+reserve
 
 	lea 256(a0),a1
-	move.l a1,8(a0)  	;txt beg (startadress of prg)  
+	move.l a1,8(a0)  	;txt beggining (startadress of prg)  
 
 	lea -28(a1),a2
-	move.l a2,a3 		;store beginadr of header
+	move.l a2,a3 		;store beginning address of header
       
 ;copy code
 .ccl: 

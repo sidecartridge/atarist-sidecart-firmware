@@ -129,8 +129,7 @@ static __uint16_t check_folder(__uint16_t service)
     }
     if (status != 0)
     {
-        printf("Press any key to exit...\r\n");
-        getchar();
+        press_key("Press any key to exit...\r\n");
     }
     return status;
 }

@@ -84,9 +84,9 @@ static __int8_t get_number_active_wait(CallbackFunction networkCallback, Callbac
     while (1)
     {
         char key = '\0';
-        if (Cconis())
+        if (Bconstat(2) != 0)
         {
-            key = Crawcin();
+            key = Bconin(2);
             // upper key case
             if ((key >= 'a') && (key <= 'z'))
             {
@@ -135,13 +135,13 @@ static __int8_t get_number_active_wait(CallbackFunction networkCallback, Callbac
                     printf("%c. %s", menuItems[i].option, menuItems[i].description);
                 }
                 fflush(stdout);
-                callback_interval = MENU_CALLBACK_INTERVAL;
+                callback_interval = MENU_CALLBACK_INTERVAL * 50;
             }
             else
             {
-                please_wait_silent(1);
+                Vsync(); // Wait for VBL interrupt
                 callback_interval--;
-                blink_if_new_version_available(callback_interval % 2);
+                blink_if_new_version_available((callback_interval / 50) % 2);
             }
         }
     }
@@ -188,6 +188,7 @@ static int run()
     __uint16_t feature = err; // If the config is not loaded, exit the program. Otherwise, show the menu
     while (feature == 0)
     {
+        flush_kbd();
         feature = menu();
         switch (feature)
         {
@@ -231,14 +232,15 @@ static int run()
     }
     locate(0, 22);
     printf("\033K\r\n\033K\r\n\033KPress any key to reset your Atari ST computer...");
+    flush_kbd();
 #ifdef _DEBUG
-    getchar();
+    Cnecin();
     restoreResolutionAndPalette(&screenContext);
 #else
     char ch;
     while (1)
     {
-        ch = Crawcin();
+        ch = Bconin(2);
         if (ch == 27)
         {
             // ESC key ASCII value

@@ -227,6 +227,8 @@ __uint16_t configuration()
 
     load_all_entries();
 
+    flush_kbd();
+
     while (1)
     {
         print_table(configData);
@@ -323,6 +325,8 @@ __uint16_t toggle_delay_option(void)
     send_sync_command(PUT_CONFIG_BOOL, entry, sizeof(ConfigEntry), 10, FALSE);
 
     free(entry);
+
+    flush_kbd();
 
     return 0; // Do not reset computer after toggling delay option
 }

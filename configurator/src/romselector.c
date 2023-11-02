@@ -29,10 +29,12 @@ __uint16_t rom_selector()
 #endif
     char *file_array = read_files_from_memory((char *)file_list_mem);
 
+    flush_kbd();
+
     if (!file_array)
     {
         printf("No files found. Check if you have ROMS copied in your microSD card!\r\n");
-        printf("Press any key to exit...\r\n");
+        press_key("Press any key to exit...\r\n");
         // Back to main menu
         return 0; // 0 is go to menu
     }

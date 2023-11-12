@@ -110,5 +110,7 @@ __uint16_t get_file_count(char *file_array);
 char *print_file_at_index(char *current_ptr, __uint16_t index, int num_columns);
 int display_paginated_content(char *file_array, int num_files, int page_size, char *item_name, __uint32_t *keypress);
 void print_centered(const char *str, int screen_width);
+char *prepend_file_to_array(char *file_array, const char *new_file);
+void read_string(char *string, size_t max_length);
 
 #endif /* HELPER_H_ */

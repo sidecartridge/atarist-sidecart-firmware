@@ -23,5 +23,6 @@
 #define DOWNLOAD_FLOPPY 19      // Download a floppy image from the URL
 #define GET_SD_DATA 20          // Get the SD card status, size, free space and folders
 #define GET_LATEST_RELEASE 21   // Get the latest release version of the firmware
+#define CREATE_FLOPPY 22        // Create a floppy image based in a template
 
 #endif // COMMANDS_H_

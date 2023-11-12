@@ -114,7 +114,7 @@ int send_async_command(__uint16_t command, void *payload, __uint16_t payload_siz
     if ((payload_size > 0) && (payload != NULL))
     {
 
-        for (__uint8_t i = 0; i < payload_size; i += 2)
+        for (__uint16_t i = 0; i < payload_size; i += 2)
         {
             __uint8_t value = *((volatile __uint8_t *)(rom3_address + *((__uint16_t *)(payload + i))));
 #ifdef _DEBUG
@@ -156,7 +156,7 @@ int send_sync_command(__uint16_t command, void *payload, __uint16_t payload_size
 
     if ((payload_size > 0) && (payload != NULL))
     {
-        for (__uint8_t i = 0; i < payload_size; i += 2)
+        for (__uint16_t i = 0; i < payload_size; i += 2)
         {
             __uint8_t value = *((volatile __uint8_t *)(rom3_address + *((__uint16_t *)(payload + i))));
 #ifdef _DEBUG
@@ -465,4 +465,93 @@ void print_centered(const char *str, int screen_width)
         }
         printf("%s", str);
     }
+}
+
+// Function to prepend a file name to a buffer containing null-terminated strings.
+// The buffer is expected to end with an extra null terminator.
+char *prepend_file_to_array(char *file_array, const char *new_file)
+{
+    size_t new_file_len = strlen(new_file) + 1; // +1 for the null terminator
+    size_t existing_array_len = 0;
+
+    if (file_array != NULL)
+    {
+        // Calculate the length of the existing array
+        char *ptr = file_array;
+        while (*ptr != '\0' || *(ptr + 1) != '\0')
+        { // Double null at the end
+            while (*ptr++ != '\0')
+                ;
+        }
+        existing_array_len = ptr - file_array + 1; // Include the double null terminator
+    }
+
+    // Allocate a new array that can hold the new file and the existing files
+    char *new_array = malloc(new_file_len + existing_array_len);
+    if (new_array == NULL)
+    {
+        printf("Failed to allocate memory for new file array\r\n");
+        return NULL;
+    }
+
+    // Copy the new file to the new array and add a null terminator
+    memcpy(new_array, new_file, new_file_len);
+
+    // Copy the existing files after the new file, including the double null terminator
+    if (file_array != NULL)
+    {
+        memcpy(new_array + new_file_len, file_array, existing_array_len);
+    }
+    else
+    {
+        // If there were no existing files, add an extra null terminator
+        new_array[new_file_len] = '\0';
+    }
+
+    // Free the old array if it was dynamically allocated
+    free(file_array);
+
+    return new_array;
+}
+
+// Function to read a string from stdin
+void read_string(char *string, size_t max_length)
+{
+    int ch;
+    size_t index = 0;
+
+    // Initialize the string buffer
+    for (size_t i = 0; i < max_length; i++)
+    {
+        string[i] = '\0';
+    }
+
+    // Repeat until Enter is pressed
+    while (1)
+    {
+        ch = getchar();
+        if (ch == '\n' || ch == '\r')
+        {
+            // User pressed Enter
+            break;
+        }
+        else if (ch == 127 || ch == '\b')
+        {
+            // User pressed backspace
+            if (index > 0)
+            {
+                index--;
+                // Move cursor back one position and overwrite with space
+                printf(" \b");
+                fflush(stdout);
+            }
+        }
+        else if (ch >= ' ' && index < max_length - 1)
+        {
+            // User entered a printable character
+            string[index++] = (char)ch;
+        }
+    }
+    // Ensure the string is null-terminated
+    string[index] = '\0';
 }

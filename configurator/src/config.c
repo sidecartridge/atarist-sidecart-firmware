@@ -318,13 +318,15 @@ __uint16_t toggle_delay_option(void)
 
     is_delay_option = !is_delay_option;
     ConfigEntry *entry = (ConfigEntry *)malloc(sizeof(ConfigEntry));
-    strncpy(entry->key, "DELAY_ROM_EMULATION", MAX_STRING_VALUE_LENGTH);
+    strncpy(entry->key, "DELAY_ROM_EMULATION", MAX_KEY_LENGTH);
     strncpy(entry->value, is_delay_option ? "true" : "false", MAX_STRING_VALUE_LENGTH);
     entry->dataType = TYPE_BOOL;
 
     send_sync_command(PUT_CONFIG_BOOL, entry, sizeof(ConfigEntry), 10, FALSE);
 
     free(entry);
+
+    send_sync_command(SAVE_CONFIG, NULL, 0, 10, TRUE);
 
     flush_kbd();
 

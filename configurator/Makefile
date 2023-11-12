@@ -79,10 +79,13 @@ network.o: prepare
 storage.o: prepare
 	$(CC) $(CFLAGS) $(SOURCES_DIR)/storage.c -o $(BUILD_DIR)/storage.o
 
+rtc.o: prepare
+	$(CC) $(CFLAGS) $(SOURCES_DIR)/rtc.c -o $(BUILD_DIR)/rtc.o
+
 main.o: prepare
 	$(CC) $(CFLAGS) $(SOURCES_DIR)/main.c -o $(BUILD_DIR)/main.o
 
-main: screen.o helper.o network.o config.o reset.o romselector.o floppyselector.o floppydb.o storage.o main.o
+main: screen.o helper.o network.o config.o reset.o romselector.o floppyselector.o floppydb.o storage.o rtc.o main.o
 	$(CC) $(LIBCMINI)/lib/crt0.o \
 		  $(BUILD_DIR)/screen.o \
 		  $(BUILD_DIR)/romselector.o \
@@ -93,6 +96,7 @@ main: screen.o helper.o network.o config.o reset.o romselector.o floppyselector.
 		  $(BUILD_DIR)/helper.o \
 		  $(BUILD_DIR)/network.o \
 		  $(BUILD_DIR)/storage.o \
+		  $(BUILD_DIR)/rtc.o \
 		  $(BUILD_DIR)/main.o \
 		  -o $(BUILD_DIR)/$(EXE) $(LINKFLAGS);
 

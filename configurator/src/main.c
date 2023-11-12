@@ -8,6 +8,7 @@
 #include "include/network.h"
 #include "include/reset.h"
 #include "include/storage.h"
+#include "include/rtc.h"
 
 #define ROM_MICROSD_SELECTOR_OPTION '1'
 #define ROM_MICROSD_SELECTOR_OPTION_LINE 1
@@ -19,8 +20,10 @@
 #define FLOPPY_RW_MICROSD_SELECTOR_OPTION_LINE 4
 #define FLOPPY_DB_SELECTOR_OPTION '5'
 #define FLOPPY_DB_SELECTOR_OPTION_LINE 5
+#define RTC_SELECTOR_OPTION '6'
+#define RTC_SELECTOR_OPTION_LINE 6
 #define DELAY_TOGGLE_SELECTOR_OPTION 'D'
-#define DELAY_TOGGLE_SELECTOR_OPTION_LINE FLOPPY_DB_SELECTOR_OPTION_LINE + 2
+#define DELAY_TOGGLE_SELECTOR_OPTION_LINE RTC_SELECTOR_OPTION_LINE + 2
 #define NETWORK_SELECTOR_OPTION 'W'
 #define NETWORK_SELECTOR_OPTION_LINE DELAY_TOGGLE_SELECTOR_OPTION_LINE + 1
 #define CONFIGURATION_OPTION 'C'
@@ -35,8 +38,8 @@
 #define MENU_ALIGN_Y 4
 #define PROMT_ALIGN_X 7
 #define PROMT_ALIGN_Y 20
-#define MENU_CALLBACK_INTERVAL 3  // Every 3 seconds poll for the connection status
-#define ALLOWED_KEYS "12345DWCRE" // Only these keys are allowed
+#define MENU_CALLBACK_INTERVAL 3   // Every 3 seconds poll for the connection status
+#define ALLOWED_KEYS "123456DWCRE" // Only these keys are allowed
 
 typedef struct
 {
@@ -54,6 +57,7 @@ static MenuItem menuItems[] = {
     {FLOPPY_RO_MICROSD_SELECTOR_OPTION, FLOPPY_RO_MICROSD_SELECTOR_OPTION_LINE, "Emulate Floppy image from microSD in Read-Only mode (PREVIEW)"},
     {FLOPPY_RW_MICROSD_SELECTOR_OPTION, FLOPPY_RW_MICROSD_SELECTOR_OPTION_LINE, "Emulate Floppy image from microSD in Read-Write mode (PREVIEW)"},
     {FLOPPY_DB_SELECTOR_OPTION, FLOPPY_DB_SELECTOR_OPTION_LINE, "Download from the Floppy Images database (PREVIEW)"},
+    {RTC_SELECTOR_OPTION, RTC_SELECTOR_OPTION_LINE, "Real Time Clock"},
     {DELAY_TOGGLE_SELECTOR_OPTION, DELAY_TOGGLE_SELECTOR_OPTION_LINE, ""},
     {NETWORK_SELECTOR_OPTION, NETWORK_SELECTOR_OPTION_LINE, "Wi-Fi configuration"},
     {CONFIGURATION_OPTION, CONFIGURATION_OPTION_LINE, "SidecarT configuration"},
@@ -64,7 +68,7 @@ static MenuItem menuItems[] = {
 static __uint16_t is_rom_boot = FALSE;
 
 // Modify if more items added before this selector
-static __int8_t delay_toogle_selector_index = 5;
+static __int8_t delay_toogle_selector_index = 6;
 static __int8_t exit_option_index = (sizeof(menuItems) / sizeof(menuItems[0])) - 1;
 
 // BLink if there is a new verson available
@@ -206,6 +210,9 @@ static int run()
             break;
         case FLOPPY_DB_SELECTOR_OPTION:
             feature = floppy_db();
+            break;
+        case RTC_SELECTOR_OPTION:
+            feature = rtc_menu();
             break;
         case DELAY_TOGGLE_SELECTOR_OPTION:
             feature = toggle_delay_option();

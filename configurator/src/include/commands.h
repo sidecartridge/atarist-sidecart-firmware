@@ -24,5 +24,6 @@
 #define GET_SD_DATA 20          // Get the SD card status, size, free space and folders
 #define GET_LATEST_RELEASE 21   // Get the latest release version of the firmware
 #define CREATE_FLOPPY 22        // Create a floppy image based in a template
+#define BOOT_RTC 23             // Boot the RTC emulator
 
 #endif // COMMANDS_H_

@@ -139,7 +139,6 @@ __uint16_t get_connection_status(__uint16_t show_bar)
 
 __uint16_t check_latest_release()
 {
-    latest_release_available = FALSE;
     // Check if the latest release is available
     if (connection_data != NULL)
     {

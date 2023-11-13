@@ -38,7 +38,7 @@
 #define MENU_ALIGN_Y 4
 #define PROMT_ALIGN_X 7
 #define PROMT_ALIGN_Y 20
-#define MENU_CALLBACK_INTERVAL 3   // Every 3 seconds poll for the connection status
+#define MENU_CALLBACK_INTERVAL 6   // Every 6 seconds poll for the connection status
 #define ALLOWED_KEYS "123456DWCRE" // Only these keys are allowed
 
 typedef struct
@@ -78,7 +78,6 @@ static void blink_if_new_version_available(__uint16_t blink_toogle)
     {
         locate(47, 0);
         printf("\033p%s\033q", blink_toogle ? "!" : " ");
-        fflush(stdout);
     }
 }
 
@@ -138,14 +137,13 @@ static __int8_t get_number_active_wait(CallbackFunction networkCallback, Callbac
                     locate(MENU_ALIGN_X, MENU_ALIGN_Y + menuItems[i].line);
                     printf("%c. %s", menuItems[i].option, menuItems[i].description);
                 }
-                fflush(stdout);
                 callback_interval = MENU_CALLBACK_INTERVAL * 50;
             }
             else
             {
+                blink_if_new_version_available((callback_interval / 50) % 2);
                 Vsync(); // Wait for VBL interrupt
                 callback_interval--;
-                blink_if_new_version_available((callback_interval / 50) % 2);
             }
         }
     }

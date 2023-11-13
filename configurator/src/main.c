@@ -74,7 +74,7 @@ static __int8_t exit_option_index = (sizeof(menuItems) / sizeof(menuItems[0])) -
 // BLink if there is a new verson available
 static void blink_if_new_version_available(__uint16_t blink_toogle)
 {
-    if (check_latest_release())
+    if (get_latest_release())
     {
         locate(47, 0);
         printf("\033p%s\033q", blink_toogle ? "!" : " ");

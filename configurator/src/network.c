@@ -1,10 +1,10 @@
 #include "include/network.h"
 
-static ConnectionData *connection_data = NULL;
-static ConnectionStatus connection_status = DISCONNECTED;
+static __uint16_t poll_latest_release;
+static __uint16_t latest_release_available;
 
-static __uint16_t poll_latest_release = TRUE;
-static __uint16_t latest_release_available = FALSE;
+static ConnectionStatus connection_status = DISCONNECTED;
+static ConnectionData *connection_data = NULL;
 
 static void read_networks_from_memory(char *ssids, WifiNetworkInfo networks[], __uint16_t total_size)
 {
@@ -92,10 +92,34 @@ char *get_status_str(ConnectionStatus status)
     return status_str;
 }
 
+static void check_latest_release()
+{
+    // Check if the latest release is available
+    if (connection_data != NULL)
+    {
+        if (connection_data->status == CONNECTED_WIFI_IP)
+        {
+            if (poll_latest_release)
+            {
+                poll_latest_release = FALSE;
+                int err = send_sync_command(GET_LATEST_RELEASE, NULL, 0, 10, FALSE);
+                if (err == 0)
+                {
+                    char *latest_release = (char *)(LATEST_RELEASE_START_ADDRESS + sizeof(__uint32_t));
+                    // The latest release is the same as the current version or not?
+                    latest_release_available = strlen(latest_release) > 0;
+                }
+            }
+        }
+    }
+}
+
 void init_connection_status()
 {
     connection_data = malloc(sizeof(ConnectionData));
     memset(connection_data, 0, sizeof(ConnectionData));
+    poll_latest_release = TRUE;
+    latest_release_available = FALSE;
 }
 
 __uint16_t get_connection_status(__uint16_t show_bar)
@@ -137,26 +161,8 @@ __uint16_t get_connection_status(__uint16_t show_bar)
     return err;
 }
 
-__uint16_t check_latest_release()
+__uint16_t get_latest_release()
 {
-    // Check if the latest release is available
-    if (connection_data != NULL)
-    {
-        if (connection_data->status == CONNECTED_WIFI_IP)
-        {
-            if (poll_latest_release)
-            {
-                poll_latest_release = FALSE;
-                int err = send_sync_command(GET_LATEST_RELEASE, NULL, 0, 10, FALSE);
-                if (err == 0)
-                {
-                    char *latest_release = (char *)(LATEST_RELEASE_START_ADDRESS + sizeof(__uint32_t));
-                    // The latest release is the same as the current version or not?
-                    latest_release_available = strlen(latest_release) > 0;
-                }
-            }
-        }
-    }
     return latest_release_available;
 }
 

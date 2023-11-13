@@ -106,12 +106,13 @@ static ConnectionData connection_data_example = {
     .status = CONNECTED_WIFI_IP};
 #endif
 
-__uint16_t check_latest_release();
+__uint16_t get_latest_release();
 __uint16_t wifi_menu();
 __uint16_t force_connection_status(__uint16_t show_bar);
 __uint16_t get_connection_status(__uint16_t show_bar);
 __uint16_t roms_from_network_selector();
 __uint16_t check_network_connection();
+
 void init_connection_status();
 
 #endif // NETWORK_H

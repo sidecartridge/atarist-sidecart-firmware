@@ -125,7 +125,7 @@ void init_connection_status()
 __uint16_t get_connection_status(__uint16_t show_bar)
 {
     char buffer[STATUS_STRING_BUFFER_SIZE];
-    int err = send_sync_command(GET_IP_DATA, NULL, (__uint16_t)0, 5, FALSE);
+    int err = send_sync_command(GET_IP_DATA, NULL, (__uint16_t)0, 1, FALSE);
 
     if (err != 0)
     {

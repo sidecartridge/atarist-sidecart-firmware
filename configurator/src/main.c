@@ -84,12 +84,15 @@ static void blink_if_new_version_available(__uint16_t blink_toogle)
 static __int8_t get_number_active_wait(CallbackFunction networkCallback, CallbackFunction storageCallback)
 {
     __uint16_t callback_interval = 0;
+    __uint16_t first_time = TRUE;
+    flush_kbd();
     while (1)
     {
         char key = '\0';
-        if (Bconstat(2) != 0)
+        if (Cconis() != 0)
         {
-            key = Bconin(2);
+            Vsync(); // Wait for VBL interrupt
+            key = Cnecin();
             // upper key case
             if ((key >= 'a') && (key <= 'z'))
             {
@@ -101,7 +104,7 @@ static __int8_t get_number_active_wait(CallbackFunction networkCallback, Callbac
                 return (__int8_t)key;
             }
         }
-        if ((networkCallback != NULL) || (storageCallback != NULL))
+        else
         {
             if (callback_interval <= 0)
             {
@@ -114,30 +117,34 @@ static __int8_t get_number_active_wait(CallbackFunction networkCallback, Callbac
                 {
                     networkCallback(TRUE);
                 }
-                // Change the DELAY_TOGGLE_SELECTOR_OPTION description according to the value of is_delay_option_enabled()
-                if (is_delay_option_enabled())
-                {
-                    menuItems[delay_toogle_selector_index].description = "Disable ROM delay / Ripper mode";
-                }
-                else
-                {
-                    menuItems[delay_toogle_selector_index].description = "Enable ROM delay / Ripper mode";
-                }
-                // Change the exit option description according to the value of is_rom_boot
-                if (is_rom_boot)
-                {
-                    menuItems[exit_option_index].description = "Reboot";
-                }
-                else
-                {
-                    menuItems[exit_option_index].description = "Exit to GEM";
-                }
-                for (int i = 0; i < sizeof(menuItems) / sizeof(MenuItem); i++)
-                {
-                    locate(MENU_ALIGN_X, MENU_ALIGN_Y + menuItems[i].line);
-                    printf("%c. %s", menuItems[i].option, menuItems[i].description);
-                }
                 callback_interval = MENU_CALLBACK_INTERVAL * 50;
+                if (first_time)
+                {
+                    first_time = FALSE;
+                    // Change the DELAY_TOGGLE_SELECTOR_OPTION description according to the value of is_delay_option_enabled()
+                    if (is_delay_option_enabled())
+                    {
+                        menuItems[delay_toogle_selector_index].description = "Disable ROM delay / Ripper mode";
+                    }
+                    else
+                    {
+                        menuItems[delay_toogle_selector_index].description = "Enable ROM delay / Ripper mode";
+                    }
+                    // Change the exit option description according to the value of is_rom_boot
+                    if (is_rom_boot)
+                    {
+                        menuItems[exit_option_index].description = "Reboot";
+                    }
+                    else
+                    {
+                        menuItems[exit_option_index].description = "Exit to GEM";
+                    }
+                    for (int i = 0; i < sizeof(menuItems) / sizeof(MenuItem); i++)
+                    {
+                        locate(MENU_ALIGN_X, MENU_ALIGN_Y + menuItems[i].line);
+                        printf("%c. %s", menuItems[i].option, menuItems[i].description);
+                    }
+                }
             }
             else
             {
@@ -190,7 +197,6 @@ static int run()
     __uint16_t feature = err; // If the config is not loaded, exit the program. Otherwise, show the menu
     while (feature == 0)
     {
-        flush_kbd();
         feature = menu();
         switch (feature)
         {

@@ -6,7 +6,7 @@
 
 #include "config.h"
 
-#define EXCHANGE_BUFFER_SIZE 4096
+#define EXCHANGE_BUFFER_SIZE 0 // 0 means that the buffer is the full ROM3 memory
 #ifdef _DEBUG
 static char file_list_example[] = {
     'd', 'o', 'c', 'u', 'm', 'e', 'n', 't', '.', 't', 'x', 't', 0,

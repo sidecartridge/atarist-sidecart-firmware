@@ -52,9 +52,11 @@ __uint16_t rom_selector()
 
     print_file_at_index(file_array, rom_number - 1, 0);
 
-    printf("Loading ROM. Wait until the led in the board blinks a 'E' or 'D' in morse...");
+    printf("\r\nLoading ROM. Wait until the led in the board blinks a 'E' or 'D' in morse...");
 
     send_sync_command(LOAD_ROM, &rom_number, 2, 30, TRUE);
+
+    sleep_seconds(5, FALSE);
 
     printf("\r\033KROM file loaded. ");
 

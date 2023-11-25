@@ -301,9 +301,11 @@ __uint16_t roms_from_network_selector()
 
     print_file_at_index(file_array, rom_number - 1, 0);
 
-    printf("Downloading ROM. Wait until the led in the board blinks a 'E' or 'D' in morse...");
+    printf("\r\nDownloading ROM. Wait until the led in the board blinks a 'E' or 'D' in morse...");
 
     send_sync_command(DOWNLOAD_ROM, &rom_number, 2, 30, TRUE);
+
+    sleep_seconds(5, FALSE);
 
     printf("\r\033KROM file downloaded. ");
 

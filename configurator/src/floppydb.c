@@ -121,7 +121,7 @@ __uint16_t floppy_db()
 
                         print_file_at_index(file_array, app_number - 1, 0);
 
-                        printf("Loading floppy. Wait until the led in the board blinks a 'F' in morse...");
+                        printf("\r\nLoading floppy. Wait until the led in the board blinks a 'F' in morse...");
 
                         send_sync_command(DOWNLOAD_FLOPPY, &app_number, 2, 30, TRUE);
 
@@ -129,6 +129,7 @@ __uint16_t floppy_db()
 
                         if (download_status == 0)
                         {
+                            sleep_seconds(5, FALSE);
                             printf("\r\033KFloppy image file loaded. ");
                             return 1; // different than zero is OK
                         }

@@ -144,6 +144,8 @@ static __uint16_t floppy_selector(mode_t floppy_command)
 
             send_sync_command(floppy_command, &floppy_number, 2, 30, TRUE);
 
+            sleep_seconds(5, FALSE);
+
             printf("\r\033KFloppy image file loaded.");
         }
     }

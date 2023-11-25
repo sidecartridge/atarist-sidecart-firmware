@@ -14,7 +14,7 @@ The source is bifurcated into:
 
 **Note**: This ROM cannot be loaded or emulated like conventional ROMs. It has to be merged directly into the Sidecart RP2040 ROM Emulator firmware. Additional details are available in the [Sidecart Raspberry Pico firmware](https://github.com/diegoparrilla/atarist-sidecart-raspberry-pico).
 
-Newcomers to the Sidecart ROM Emulator are encouraged to peruse the official [Sidecart ROM Emulator website](https://sidecart.xyz) for a comprehensive understanding.
+Newcomers to the Sidecart ROM Emulator are encouraged to peruse the official [Sidecart ROM Emulator website](https://sidecartridge.com) for a comprehensive understanding.
 
 ## Requirements
 
@@ -96,7 +96,7 @@ Note: The build output isn't akin to standard ROM images. The release files have
 
 ## Resources 
 
-- [Sidecart ROM Emulator website](https://sidecart.xyz)
+- [Sidecart ROM Emulator website](https://sidecartridge.com)
 - [Sidecart Raspberry Pico firmware](https://github.com/diegoparrilla/atarist-sidecart-raspberry-pico) - Where the second phase of the Sidecart ROM Emulator firmware evolution unfolds.
 
 ## License

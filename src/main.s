@@ -172,6 +172,16 @@ run_configurator:
 
 	move.l d0,a1
 
+; Zero out the BSS.
+	lsr.l   #2, d7				; divide by 4 to get number of longs
+	addq.l  #1, d7				; add 1 to round up
+	move.l  $1c(a0),d7          ;length of bss	
+	move.l  $18(a0),a4          ;address to bss
+zero_bss:
+	clr.l (a4)+
+	dbf d7, zero_bss
+
+
 	jmp (a1)
 
 welcome:

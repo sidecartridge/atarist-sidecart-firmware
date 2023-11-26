@@ -260,7 +260,10 @@ static int run()
         else
         {
             __asm__(
-                "move.l (0x4), %a0\n\t"
+                "clr.l 0x00000420\n\t" // Invalidate memory system variables
+                "clr.l 0x0000043A\n\t"
+                "clr.l 0x0000051A\n\t"
+                "move.l (0x4), %a0\n\t" // Now we can safely jump to the reset vector
                 "jmp (%a0)");
         }
     }

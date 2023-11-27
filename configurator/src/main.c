@@ -176,6 +176,10 @@ static __int8_t menu()
 // Main program
 static int run()
 {
+
+    send_async_command(CLEAN_START, NULL, 0);
+    please_wait_silent(1);
+
     ScreenContext screenContext;
     initScreenContext(&screenContext);
 

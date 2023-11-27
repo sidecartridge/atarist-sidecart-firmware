@@ -98,17 +98,29 @@ pre_auto:
 
 	even
 
+; If we are here, it meeans we are in the cartridge ROM loader.
+; We need to adjust the memory size, relocate and create the basepage.
 adjust_mem:
 	move.l    $432.w,a3		; Membot
     move.l    $436.w,a4		; Memtop
+
     move.w    #$0300,sr		; Set user mode
 
+; Stack initialization (set to top of memory)
     lea   	 -8(a4),sp		; Set the stack pointer to the top of memory
     clr.l    (sp)			; 
+
+; Basepage initialization at the memory bottom
     move.l	a3,4(sp)		; Set the basepage as the memory bottom	
 
-run_configurator:
+; In the cartridge, set the p_pointer to NULL
+	moveq	#0,d6 			; Set the p_pointer to NULL
+	bra.s run_configurator_avoid_p_pointer
 
+run_configurator:
+	moveq #-1, d6			; Do not modify the p_pointer
+
+run_configurator_avoid_p_pointer:
    	lea configurator(pc),a6
 	move.w #((end_configurator - configurator)/4),d2
 
@@ -117,22 +129,18 @@ run_configurator:
 ; a6 - program base address
 ; d2 - program length in long words (bytes/4)
 .common:
-	move.l 4(sp),a0 	;tpa begin
-	move.l 4(a0),d0 	;tpa end
-	sub.l a0,d0 		;available len
+	move.l 4(sp),a0 	; tpa begin
+						; Calculate the size of the TPA
+	move.l 2(a6),d1 	; ph_tlen: Length of the TEXT segment
+	add.l 6(a6),d1 		; ph_dlen: Length of the DATA segment
+	add.l 10(a6),d1 	; ph_blen: Length of the BSS segment
+	add.l #$100,d1 		; $100 bytes for the basepage
 
-	moveq #0,d1
-	add.l 2(a6),d1 		;text len
-	add.l 6(a6),d1 		;data len
-	add.l 10(a6),d1 	;bss len
-	add.l #512,d1 		;for basepage+reserve
-
-	lea 256(a0),a1
-	move.l a1,8(a0)  	;txt beggining (startadress of prg)  
+	lea $100(a0),a1		; a1 is the start of the TEXT segment
+	move.l a1,8(a0)  	; TEXT segment beggining (startadress of prg)  
 
 	lea -28(a1),a2
-	move.l a2,a3 		;store beginning address of header
-      
+	move.l a2,a3 		; store beginning address of header
 ;copy code
 .ccl: 
 	move.l (a6)+,(a2)+  
@@ -140,11 +148,11 @@ run_configurator:
   
 ;Relocation
 ;a0 is base page,a1 is text begin, a3 is header addr.
-	move.l a1,a2
-	add.l 2(a3),a2  	;txt len
-	add.l 6(a3),a2  	;data len
-	move.l a1,d0
-	tst.l (a2)
+	move.l 	a1,a2
+	add.l 	2(a3),a2  	;txt len
+	add.l 	6(a3),a2  	;data len
+	move.l 	a1,d0
+	tst.l 	(a2)
 	beq.s .corrbp
 	adda.l (a2)+, a1
 	clr.l d1
@@ -161,26 +169,39 @@ run_configurator:
 	adda.l d1, a1
 	bra.s .relol
 .corrbp:
-	move.l	2(a3),$c(a0)
-	move.l	6(a3),$14(a0)
-	move.l	$a(a3),$1c(a0)
+	move.l 4(sp), a0			; tpa begin
+	move.l 4(a0), d7 			; tpa end
+	addq.l #1, d7       		; tpa end + 1. First unusable location.	
+	move.l d7, $4(a0)			; p_hitpa:  First byte after the end of the TPA
+
+	move.l a0, $0(a0)			; p_lowtpa: Start address of the TPA
+	move.l #$100, d7			; TPA header size
+	add.l a0, d7				;
+	move.l d7, $8(a0)			; p_tbase: Start address of the program code (TEXT section)
+	move.l	2(a3),$c(a0)		; p_tlen: Length of the program code (TEXT section)
+	move.l	6(a3),$14(a0)		; p_dlen: Length of the DATA section
+	move.l	$a(a3),$1c(a0)   	; p_blen: Length of the BSS section
 	move.l	$c(a0),d1
 	add.l	d0,d1
-	move.l	d1,$10(a0)
+	move.l	d1,$10(a0)			; p_dbase: Start address of the DATA segment
 	add.l	$14(a0),d1
-	move.l	d1,$18(a0)
+	move.l	d1,$18(a0)			; p_bbase: Start address of the BSS segment
 
 	move.l d0,a1
 
+	tst.l   d6 					; if executing from cartridge, set p_parent to NULL
+	bne.s  .zero_out_bss		; if not, use the default value
+	clr.l   $24(a0)				; p_parent: Pointer to the basepage of the calling processes
+
 ; Zero out the BSS.
+.zero_out_bss:
 	move.l  $1c(a0),d7          ;length of bss	
 	lsr.l   #2, d7				; divide by 4 to get number of longs
 	addq.l  #1, d7				; add 1 to round up
 	move.l  $18(a0),a4          ;address to bss
-zero_bss:
+.zero_bss:
 	clr.l (a4)+
-	dbf d7, zero_bss
-
+	dbf d7, .zero_bss
 
 	jmp (a1)
 

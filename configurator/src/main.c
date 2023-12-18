@@ -172,10 +172,113 @@ static __int8_t menu()
     return feature;
 }
 
+/* 'get_cookie':  Inquires the value of a cookie.
+                  The parameters passed for this are the ID of the
+                  cookie to be found, as well as a pointer to the
+                  found value.
+
+                  The routine returns the value FALSE if the
+                  specified cookie does not exist... */
+
+typedef struct
+{
+    __uint32_t id;    /* Identification code */
+    __uint32_t value; /* Value of the cookie */
+} COOKJAR;
+
+static __uint16_t get_cookie(__uint32_t cookie, __uint32_t *value)
+{
+    COOKJAR *cookiejar;
+
+    cookiejar = *(COOKJAR **)0x05A0;
+    if (cookiejar != NULL)
+    {
+        for (__uint16_t i = 0; cookiejar[i].id; i++)
+            if (cookiejar[i].id == cookie)
+            {
+                if (value)
+                    *(__uint32_t *)value = cookiejar[i].value;
+                return TRUE;
+            }
+    }
+    return FALSE;
+}
+
 //================================================================
 // Main program
 static int run()
 {
+
+    __uint8_t previous_cpu_16mhz_status = 0;
+    __uint8_t cpu_16mhz_status = 0;
+    __uint32_t machine_type = 0;
+
+    void restore_cpu_speed()
+    {
+        if (previous_cpu_16mhz_status != 0)
+        {
+            // Restore the previous CPU configuration
+            // CPU speed first
+            *(volatile __uint8_t *)0xffff8e21 = previous_cpu_16mhz_status & 0x1;
+            // Finally the cache
+            *(volatile __uint8_t *)0xffff8e21 = previous_cpu_16mhz_status;
+        }
+    }
+
+    void change_cpu_speed()
+    {
+
+        if (get_cookie(0x5f4d4348, &machine_type)) // '_MCH' is 0x5f4d4348
+        {
+            switch (machine_type)
+            {
+            case 0x00010010: // Atari MegaSTE
+                cpu_16mhz_status = *(__uint8_t *)0xffff8e21;
+
+#ifdef _DEBUG
+                if ((cpu_16mhz_status & 0x1) > 0)
+                {
+                    printf("Cache enabled.\n\r");
+                }
+                else
+                {
+                    printf("Cache disabled.\n\r");
+                }
+                if ((cpu_16mhz_status & 0x8) > 0)
+                {
+                    printf("16MHz CPU enabled.\n\r");
+                }
+                else
+                {
+                    printf("8MHz CPU enabled.\n\r");
+                }
+#endif
+                previous_cpu_16mhz_status = cpu_16mhz_status;
+                // First disable the cache
+                *(volatile __uint8_t *)0xffff8e21 = cpu_16mhz_status & 0x1;
+                // Then enable the 8MHz CPU
+                *(volatile __uint8_t *)0xffff8e21 = 0x0;
+                break;
+            case 0x00010000: // Atari STE
+                break;
+            case 0x0002000: // Atari TT
+                break;
+            case 0x0003000: // Atari Falcon
+                break;
+            default:
+                printf("Atari ST detected with cookie-jar?.\n\r");
+                break;
+            }
+        }
+#ifdef _DEBUG
+        else
+        {
+            printf("Atari ST detected.\n\r");
+        }
+#endif
+    }
+
+    change_cpu_speed();
 
     send_async_command(CLEAN_START, NULL, 0);
     please_wait_silent(1);
@@ -237,6 +340,7 @@ static int run()
         case EXIT_OPTION:
             if (!is_rom_boot)
             {
+                restore_cpu_speed();
                 restoreResolutionAndPalette(&screenContext);
                 return 0;
             }
@@ -252,6 +356,9 @@ static int run()
     Cnecin();
     restoreResolutionAndPalette(&screenContext);
 #else
+
+    restore_cpu_speed();
+
     char ch;
     while (1)
     {
@@ -282,6 +389,9 @@ int main(int argc, char *argv[])
     // switching to supervisor mode and execute run()
     // needed because of direct memory access for reading/writing the palette
     Supexec(&run);
+
+    // Restore the CPU speed
+    //    *((unsigned int *)0x00ff8e20L) = cpu_16mhz_status;
 
     Pterm(0);
 }

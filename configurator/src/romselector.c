@@ -17,7 +17,7 @@ __uint16_t rom_selector()
 
     printf("Loading available ROM images...");
 
-    send_sync_command(LIST_ROMS, NULL, 0, 10, TRUE);
+    send_sync_command(LIST_ROMS, NULL, 0, ROMS_JSON_WAIT_TIME, TRUE);
 
     printf("\r\n");
 
@@ -54,7 +54,7 @@ __uint16_t rom_selector()
 
     printf("\r\nLoading ROM. Wait until the led in the board blinks a 'E' or 'D' in morse...");
 
-    send_sync_command(LOAD_ROM, &rom_number, 2, 30, TRUE);
+    send_sync_command(LOAD_ROM, &rom_number, 2, ROMSLOAD_WAIT_TIME, TRUE);
 
     sleep_seconds(5, FALSE);
 

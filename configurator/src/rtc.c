@@ -6,9 +6,9 @@ static void set_rtc_type(char *type)
     strncpy(entry->key, "RTC_TYPE", MAX_KEY_LENGTH);
     strncpy(entry->value, type, MAX_STRING_VALUE_LENGTH);
     entry->dataType = TYPE_STRING;
-    send_sync_command(PUT_CONFIG_STRING, entry, sizeof(ConfigEntry), 10, FALSE);
+    send_sync_command(PUT_CONFIG_STRING, entry, sizeof(ConfigEntry), RTC_WAIT_TIME, FALSE);
     free(entry);
-    send_sync_command(SAVE_CONFIG, NULL, 0, 10, TRUE);
+    send_sync_command(SAVE_CONFIG, NULL, 0, RTC_WAIT_TIME, TRUE);
     __uint16_t err = read_config();
 }
 
@@ -101,10 +101,10 @@ __uint16_t rtc_menu()
                 strncpy(entry->key, "RTC_UTC_OFFSET", MAX_KEY_LENGTH);
                 strncpy(entry->value, offset, MAX_STRING_VALUE_LENGTH);
                 entry->dataType = TYPE_STRING;
-                send_sync_command(PUT_CONFIG_STRING, entry, sizeof(ConfigEntry), 10, FALSE);
+                send_sync_command(PUT_CONFIG_STRING, entry, sizeof(ConfigEntry), RTC_WAIT_TIME, FALSE);
                 free(entry);
 
-                send_sync_command(SAVE_CONFIG, NULL, 0, 10, TRUE);
+                send_sync_command(SAVE_CONFIG, NULL, 0, RTC_WAIT_TIME, TRUE);
                 __uint16_t err = read_config();
 
                 display = TRUE;
@@ -125,10 +125,10 @@ __uint16_t rtc_menu()
                 strncpy(entry->key, "RTC_NTP_SERVER_HOST", MAX_KEY_LENGTH);
                 strncpy(entry->value, host, MAX_STRING_VALUE_LENGTH);
                 entry->dataType = TYPE_STRING;
-                send_sync_command(PUT_CONFIG_STRING, entry, sizeof(ConfigEntry), 10, FALSE);
+                send_sync_command(PUT_CONFIG_STRING, entry, sizeof(ConfigEntry), RTC_WAIT_TIME, FALSE);
                 free(entry);
 
-                send_sync_command(SAVE_CONFIG, NULL, 0, 10, TRUE);
+                send_sync_command(SAVE_CONFIG, NULL, 0, RTC_WAIT_TIME, TRUE);
                 __uint16_t err = read_config();
 
                 display = TRUE;
@@ -160,10 +160,10 @@ __uint16_t rtc_menu()
                 strncpy(entry->key, "RTC_NTP_SERVER_PORT", MAX_KEY_LENGTH);
                 strncpy(entry->value, port, MAX_STRING_VALUE_LENGTH);
                 entry->dataType = TYPE_INT;
-                send_sync_command(PUT_CONFIG_INTEGER, entry, sizeof(ConfigEntry), 10, FALSE);
+                send_sync_command(PUT_CONFIG_INTEGER, entry, sizeof(ConfigEntry), RTC_WAIT_TIME, FALSE);
                 free(entry);
 
-                send_sync_command(SAVE_CONFIG, NULL, 0, 10, TRUE);
+                send_sync_command(SAVE_CONFIG, NULL, 0, RTC_WAIT_TIME, TRUE);
                 __uint16_t err = read_config();
 
                 display = TRUE;
@@ -175,10 +175,10 @@ __uint16_t rtc_menu()
                 strncpy(entry->key, "BOOT_FEATURE", MAX_KEY_LENGTH);
                 strncpy(entry->value, "RTC_EMULATOR", MAX_STRING_VALUE_LENGTH);
                 entry->dataType = TYPE_STRING;
-                send_sync_command(PUT_CONFIG_STRING, entry, sizeof(ConfigEntry), 10, FALSE);
+                send_sync_command(PUT_CONFIG_STRING, entry, sizeof(ConfigEntry), RTC_WAIT_TIME, FALSE);
                 free(entry);
-                send_sync_command(SAVE_CONFIG, NULL, 0, 10, FALSE);
-                send_sync_command(BOOT_RTC, NULL, 0, 10, FALSE);
+                send_sync_command(SAVE_CONFIG, NULL, 0, RTC_WAIT_TIME, FALSE);
+                send_sync_command(BOOT_RTC, NULL, 0, RTC_WAIT_TIME, FALSE);
                 return 1; // 1 means restart boot
             }
             // Check if the input is '1', SIDECART

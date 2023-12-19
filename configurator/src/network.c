@@ -102,7 +102,7 @@ static void check_latest_release()
             if (poll_latest_release)
             {
                 poll_latest_release = FALSE;
-                int err = send_sync_command(GET_LATEST_RELEASE, NULL, 0, 10, FALSE);
+                int err = send_sync_command(GET_LATEST_RELEASE, NULL, 0, NETWORK_WAIT_TIME, FALSE);
                 if (err == 0)
                 {
                     char *latest_release = (char *)(LATEST_RELEASE_START_ADDRESS + sizeof(__uint32_t));
@@ -125,7 +125,7 @@ void init_connection_status()
 __uint16_t get_connection_status(__uint16_t show_bar)
 {
     char buffer[STATUS_STRING_BUFFER_SIZE];
-    int err = send_sync_command(GET_IP_DATA, NULL, (__uint16_t)0, 1, FALSE);
+    int err = send_sync_command(GET_IP_DATA, NULL, (__uint16_t)0, NETWORK_WAIT_TIME, FALSE);
 
     if (err != 0)
     {
@@ -185,10 +185,10 @@ __uint16_t network_selector()
 
     locate(0, 2);
     printf("Scanning the network...");
-    send_sync_command(LAUNCH_SCAN_NETWORKS, NULL, (__uint16_t)0, 10, TRUE);
+    send_sync_command(LAUNCH_SCAN_NETWORKS, NULL, (__uint16_t)0, NETWORK_WAIT_TIME, TRUE);
 
     printf("\r\033KRetrieving networks...");
-    send_sync_command(GET_SCANNED_NETWORKS, NULL, (__uint16_t)0, 10, TRUE);
+    send_sync_command(GET_SCANNED_NETWORKS, NULL, (__uint16_t)0, NETWORK_WAIT_TIME, TRUE);
 
     printf("\r\n");
 
@@ -269,7 +269,7 @@ __uint16_t roms_from_network_selector()
     __uint16_t *network_file_list_mem = (__uint16_t *)(NETWORK_FILE_LIST_START_ADDRESS + sizeof(__uint32_t));
 
     printf("Getting ROMs list...");
-    send_sync_command(GET_ROMS_JSON_FILE, NULL, (__uint16_t)0, 10, TRUE);
+    send_sync_command(GET_ROMS_JSON_FILE, NULL, (__uint16_t)0, NETWORK_WAIT_TIME, TRUE);
 
     printf("\r\n");
 
@@ -303,7 +303,7 @@ __uint16_t roms_from_network_selector()
 
     printf("\r\nDownloading ROM. Wait until the led in the board blinks a 'E' or 'D' in morse...");
 
-    send_sync_command(DOWNLOAD_ROM, &rom_number, 2, 30, TRUE);
+    send_sync_command(DOWNLOAD_ROM, &rom_number, 2, NETWORKLOAD_WAIT_TIME, TRUE);
 
     sleep_seconds(5, FALSE);
 

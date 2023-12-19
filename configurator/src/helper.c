@@ -19,7 +19,7 @@ void press_key(char *message)
 {
     if (message != NULL)
     {
-        printf(message);
+        Cconws(message);
     }
     flush_kbd();
     (void)Bconin(2);
@@ -43,7 +43,7 @@ int get_number_within_range(char *prompt, __uint16_t num_items, __uint16_t first
     while (1)
     {
         // Prompt the user
-        printf(prompt);
+        Cconws(prompt);
 
         // Get the input as a string (this is to handle empty input)
         if (fgets(input, sizeof(input), stdin) == NULL)
@@ -212,8 +212,8 @@ void spinner(__uint16_t spinner_update_frequency)
 
 void please_wait(char *message, __uint16_t seconds)
 {
-    printf(message); // Show the message
-    printf(" ");     // Leave a space for the spinner
+    Cconws(message); // Show the message
+    Cconws(" ");     // Leave a space for the spinner
     sleep_seconds(seconds, FALSE);
 }
 
@@ -285,12 +285,11 @@ char *print_file_at_index(char *current_ptr, __uint16_t index, int num_columns)
         if (current_index == index)
         {
             // Print the entire string using printf
-            printf("\033K%s", current_ptr);
+            //            printf("\033K%s", current_ptr);
+            Cconws("\033K");
+            Cconws(current_ptr);
 
-            while (*current_ptr)
-            {
-                *current_ptr++;
-            }
+            current_ptr += strlen(current_ptr);
 
             // printf("\r\n");
             return current_ptr;
@@ -300,7 +299,6 @@ char *print_file_at_index(char *current_ptr, __uint16_t index, int num_columns)
         while (*current_ptr)
             current_ptr++;
         current_ptr++; // Skip the null terminator for the current filename
-
         current_index++;
     }
 
@@ -314,19 +312,19 @@ int display_paginated_content(char *file_array, int num_files, int page_size, ch
     {
         locate(0, current_line + 2 + index - offset);
         if (highlight)
-            printf("\033p"); // Enter reverse video mode (VT52)
-        printf("\033K");     // Erase to end of line (VT52)
+            Cconws("\033p"); // Enter reverse video mode (VT52)
+        Cconws("\033K");     // Erase to end of line (VT52)
         print_file_at_index(file_array, index, num_columns);
         if (highlight)
-            printf("\033q"); // Exit reverse video mode (VT52)
+            Cconws("\033q"); // Exit reverse video mode (VT52)
     }
 
     int selected_rom = -1;
     int page_number = 0; // Page number starts at 0
     int current_index = 0;
     locate(0, 22);
-    printf("Use [UP] and [DOWN] arrows to select. [LEFT] and [RIGHT] to paginate.\r\n");
-    printf("Press [ENTER] or [RETURN] to load. [ESC] to return to main menu.");
+    Cconws("Use [UP] and [DOWN] arrows to select. [LEFT] and [RIGHT] to paginate.\r\n");
+    Cconws("Press [ENTER] or [RETURN] to load. [ESC] to return to main menu.");
 
     while (selected_rom < 0)
     {
@@ -336,7 +334,7 @@ int display_paginated_content(char *file_array, int num_files, int page_size, ch
 
         if (start_index >= num_files)
         {
-            printf("No content for this page number!\r\n");
+            Cconws("No content for this page number!\r\n");
             return -1;
         }
 
@@ -349,11 +347,11 @@ int display_paginated_content(char *file_array, int num_files, int page_size, ch
         int index = 0;
         int current_line = 2 + (ELEMENTS_PER_PAGE - page_size);
         locate(0, current_line);
-        printf("\033K"); // Erase to end of line (VT52)
+        Cconws("\033K"); // Erase to end of line (VT52)
         printf("%s found: %d. ", item_name, num_files);
         printf("Page %d of %d\r\n", page_number + 1, max_page + 1);
         locate(0, current_line + 1);
-        printf("\033K"); // Erase to end of line (VT52)
+        Cconws("\033K"); // Erase to end of line (VT52)
         while (index <= num_files)
         {
             if ((start_index <= index) && (index <= end_index))
@@ -376,7 +374,7 @@ int display_paginated_content(char *file_array, int num_files, int page_size, ch
         {
             // THe -1 at the begining it's because of the previous increment
             locate(0, -1 + current_line + 2 + i - (page_size * page_number));
-            printf("\033K"); // Erase to end of line (VT52)
+            Cconws("\033K"); // Erase to end of line (VT52)
         }
 
         flush_kbd();
@@ -459,9 +457,9 @@ void print_centered(const char *str, int screen_width)
     else
     {
         int padding = (screen_width - len) / 2; // calculate padding needed
-        for (int i = 0; i < padding; i++)
+        if (padding > 0)
         {
-            printf(" "); // print padding
+            printf("%*s", padding, ""); // print padding
         }
         printf("%s", str);
     }
@@ -542,7 +540,7 @@ void read_string(char *string, size_t max_length)
             {
                 index--;
                 // Move cursor back one position and overwrite with space
-                printf(" \b");
+                Cconws(" \b");
                 fflush(stdout);
             }
         }

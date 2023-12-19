@@ -94,7 +94,7 @@ __uint16_t floppy_db()
                 }
                 printf("\033p%c\033q\r", key);
                 __uint16_t key16 = ((__uint16_t)key) & 0xFF;
-                send_sync_command(QUERY_FLOPPY_DB, &key16, 2, 1, FALSE);
+                send_sync_command(QUERY_FLOPPY_DB, &key16, 2, FLOPPYDB_WAIT_TIME, FALSE);
 
                 int num_files = -1;
                 __uint32_t db_file_list_mem = (__uint32_t)DB_FILES_LIST_START_ADDRESS;
@@ -123,7 +123,7 @@ __uint16_t floppy_db()
 
                         printf("\r\nLoading floppy. Wait until the led in the board blinks a 'F' in morse...");
 
-                        send_sync_command(DOWNLOAD_FLOPPY, &app_number, 2, 30, TRUE);
+                        send_sync_command(DOWNLOAD_FLOPPY, &app_number, 2, FLOPPYLOAD_WAIT_TIME, TRUE);
 
                         __uint16_t download_status = *((__uint16_t *)(DB_FILES_LIST_START_ADDRESS));
 

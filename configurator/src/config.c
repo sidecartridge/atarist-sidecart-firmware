@@ -221,7 +221,7 @@ __uint16_t configuration()
 
     printf("Loading configuration...");
 
-    send_sync_command(GET_CONFIG, NULL, 0, 10, TRUE);
+    send_sync_command(GET_CONFIG, NULL, 0, CONFIG_WAIT_TIME, TRUE);
 
     printf("\r\n");
 
@@ -258,20 +258,20 @@ __uint16_t configuration()
         switch (configData->entries[param_index].dataType)
         {
         case TYPE_INT:
-            send_sync_command(PUT_CONFIG_INTEGER, &configData->entries[param_index], sizeof(ConfigEntry), 10, FALSE);
+            send_sync_command(PUT_CONFIG_INTEGER, &configData->entries[param_index], sizeof(ConfigEntry), CONFIG_WAIT_TIME, FALSE);
             break;
         case TYPE_BOOL:
-            send_sync_command(PUT_CONFIG_BOOL, &configData->entries[param_index], sizeof(ConfigEntry), 10, FALSE);
+            send_sync_command(PUT_CONFIG_BOOL, &configData->entries[param_index], sizeof(ConfigEntry), CONFIG_WAIT_TIME, FALSE);
             break;
         case TYPE_STRING:
-            send_sync_command(PUT_CONFIG_STRING, &configData->entries[param_index], sizeof(ConfigEntry), 10, FALSE);
+            send_sync_command(PUT_CONFIG_STRING, &configData->entries[param_index], sizeof(ConfigEntry), CONFIG_WAIT_TIME, FALSE);
             break;
         default:
             printf("Unknown data type.\r\n");
             break;
         }
 
-        send_sync_command(SAVE_CONFIG, NULL, 0, 10, TRUE);
+        send_sync_command(SAVE_CONFIG, NULL, 0, CONFIG_WAIT_TIME, TRUE);
         printf("\r\n");
 
         free(input);
@@ -284,7 +284,7 @@ __uint16_t read_config()
 {
 
 #ifndef _DEBUG
-    int err = send_sync_command(GET_CONFIG, NULL, 0, 10, FALSE);
+    int err = send_sync_command(GET_CONFIG, NULL, 0, CONFIG_WAIT_TIME, FALSE);
 
     if (err != 0)
     {
@@ -322,11 +322,11 @@ __uint16_t toggle_delay_option(void)
     strncpy(entry->value, is_delay_option ? "true" : "false", MAX_STRING_VALUE_LENGTH);
     entry->dataType = TYPE_BOOL;
 
-    send_sync_command(PUT_CONFIG_BOOL, entry, sizeof(ConfigEntry), 10, FALSE);
+    send_sync_command(PUT_CONFIG_BOOL, entry, sizeof(ConfigEntry), CONFIG_WAIT_TIME, FALSE);
 
     free(entry);
 
-    send_sync_command(SAVE_CONFIG, NULL, 0, 10, TRUE);
+    send_sync_command(SAVE_CONFIG, NULL, 0, CONFIG_WAIT_TIME, TRUE);
 
     flush_kbd();
 

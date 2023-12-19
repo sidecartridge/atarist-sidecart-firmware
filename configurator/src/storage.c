@@ -11,7 +11,7 @@ void init_storage()
 __uint16_t get_storage_status(__uint16_t show_bar)
 {
     char buffer[STATUS_STRING_BUFFER_SIZE];
-    int err = send_sync_command(GET_SD_DATA, NULL, 0, 1, FALSE);
+    int err = send_sync_command(GET_SD_DATA, NULL, 0, STORAGE_WAIT_TIME, FALSE);
     if (err != 0)
     {
         snprintf(buffer, STATUS_STRING_BUFFER_SIZE, "Cannot read microSD status. Is the SidecarT connected?");

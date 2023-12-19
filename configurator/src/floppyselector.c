@@ -43,7 +43,7 @@ static __uint16_t floppy_selector(mode_t floppy_command)
 
         printf("Loading available Floppy images...");
 
-        send_sync_command(LIST_FLOPPIES, NULL, 0, 10, TRUE);
+        send_sync_command(LIST_FLOPPIES, NULL, 0, FLOPPYLIST_WAIT_TIME, TRUE);
 #endif
         printf("\r\n");
 
@@ -125,7 +125,7 @@ static __uint16_t floppy_selector(mode_t floppy_command)
             printf("\r\033KCreating new floppy image...");
 
 #ifndef _DEBUG
-            send_sync_command(CREATE_FLOPPY, &floppy_header, sizeof(FloppyImageHeader), 30, TRUE);
+            send_sync_command(CREATE_FLOPPY, &floppy_header, sizeof(FloppyImageHeader), FLOPPYLOAD_WAIT_TIME, TRUE);
 #endif
             press_key("\r\033KNew floppy image created. Please select it from the list.");
 
@@ -142,7 +142,7 @@ static __uint16_t floppy_selector(mode_t floppy_command)
             if (floppy_command == LOAD_FLOPPY_RW)
                 floppy_number--; // Bypass the menu added option to create images
 
-            send_sync_command(floppy_command, &floppy_number, 2, 30, TRUE);
+            send_sync_command(floppy_command, &floppy_number, 2, FLOPPYLOAD_WAIT_TIME, TRUE);
 
             sleep_seconds(5, FALSE);
 

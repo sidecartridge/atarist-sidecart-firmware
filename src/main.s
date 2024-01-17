@@ -86,13 +86,13 @@ pre_auto:
     trap #13
     addq.l #4,sp
 
-    dbf d7,.ddell
-
     btst #1,d0					; Left shift
     bne.s adjust_mem
 
     btst #0,d0					; Right shift skip and boot GEM
     bne.s boot_gem
+
+    dbf d7, .ddell
 
 	dbf d6, .print_loop
 boot_gem:

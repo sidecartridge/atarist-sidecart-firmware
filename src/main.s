@@ -80,7 +80,7 @@ pre_auto:
     trap #14
     addq.l #2,sp
 
-; Now check the left shift key. If pressed, exit.
+; Now check the left or right shift key. If pressed, exit.
 	move.w #-1, -(sp)			; Read all key status
     move.w #$b, -(sp)			; BIOS Get shift key status
     trap #13

@@ -80,19 +80,22 @@ pre_auto:
     trap #14
     addq.l #2,sp
 
-; Now check the left shift key. If pressed, exit.
+; Now check the left or right shift key. If pressed, exit.
 	move.w #-1, -(sp)			; Read all key status
-    move.w #$b, -(sp)			; XBIOS Get shift key status
+    move.w #$b, -(sp)			; BIOS Get shift key status
     trap #13
     addq.l #4,sp
 
-    dbf d7,.ddell
-
-    btst #1,d0
+    btst #1,d0					; Left shift
     bne.s adjust_mem
 
-	dbf d6, .print_loop
+    btst #0,d0					; Right shift skip and boot GEM
+    bne.s boot_gem
 
+    dbf d7, .ddell
+
+	dbf d6, .print_loop
+boot_gem:
 	; If we get here, continue loading GEM
     rts
 
@@ -206,7 +209,8 @@ run_configurator_avoid_p_pointer:
 	jmp (a1)
 
 welcome:
-	dc.b "Press LEFT SHIFT to autoboot the",13,10,"SidecarT Configurator.",13,10,0
+	dc.b "Press LEFT SHIFT to autoboot the",13,10,"SidecarT Configurator.",13,10
+	dc.b "Press RIGHT SHIFT to skip and boot to",13,10,"GEM now.",13,10,0
 
 to_gem:
 	dc.b 13,10,"Or GEM will load in ",0

@@ -9,7 +9,7 @@
 #include "screen.h"
 #include "commands.h"
 
-#define MAX_ENTRIES 20
+#define MAX_ENTRIES 21
 #define MAX_KEY_LENGTH 20
 #define MAX_STRING_VALUE_LENGTH 64
 
@@ -59,6 +59,10 @@ static ConfigData config_data_example = {
 
 #define FALSE 0
 #define TRUE 1
+
+#define NO_SPINNING 0
+#define SPINNING 1
+#define COUNTDOWN 2
 
 #define STATUS_STRING_BUFFER_SIZE 80 // Buffer size to display
 

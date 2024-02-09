@@ -27,6 +27,10 @@ __uint16_t floppy_db()
         locate(0, 22);
         printf("Press [ESC] to return to main menu.");
     }
+
+    ConfigEntry *download_timeout_secs = get_config_entry(PARAM_DOWNLOAD_TIMEOUT_SEC);
+    int download_timeout = download_timeout_secs != NULL ? atoi(download_timeout_secs->value) : FLOPPYLOAD_WAIT_TIME;
+
     PRINT_APP_HEADER(VERSION);
 
     printf("\r\n");
@@ -123,13 +127,12 @@ __uint16_t floppy_db()
 
                         printf("\r\nLoading floppy. Wait until the led in the board blinks a 'F' in morse...");
 
-                        send_sync_command(DOWNLOAD_FLOPPY, &app_number, 2, FLOPPYLOAD_WAIT_TIME, TRUE);
+                        send_sync_command(DOWNLOAD_FLOPPY, &app_number, 2, download_timeout, COUNTDOWN);
 
                         __uint16_t download_status = *((__uint16_t *)(DB_FILES_LIST_START_ADDRESS));
 
                         if (download_status == 0)
                         {
-                            sleep_seconds(5, FALSE);
                             printf("\r\033KFloppy image file loaded. ");
                             return 1; // different than zero is OK
                         }

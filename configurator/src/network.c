@@ -254,6 +254,9 @@ __uint16_t network_selector()
 
 __uint16_t roms_from_network_selector()
 {
+    ConfigEntry *download_timeout_secs = get_config_entry(PARAM_DOWNLOAD_TIMEOUT_SEC);
+    int download_timeout = download_timeout_secs != NULL ? atoi(download_timeout_secs->value) : ROMSLOAD_WAIT_TIME;
+
     PRINT_APP_HEADER(VERSION);
 
     printf("\r\n");
@@ -303,13 +306,15 @@ __uint16_t roms_from_network_selector()
 
     printf("\r\nDownloading ROM. Wait until the led in the board blinks a 'E' or 'D' in morse...");
 
-    send_sync_command(DOWNLOAD_ROM, &rom_number, 2, NETWORKLOAD_WAIT_TIME, TRUE);
-
-    sleep_seconds(5, FALSE);
-
-    printf("\r\033KROM file downloaded. ");
-
-    return 1; // Positive is OK
+    int download_status = send_sync_command(DOWNLOAD_ROM, &rom_number, 2, download_timeout, COUNTDOWN);
+    if (download_status == 0)
+    {
+        printf("\r\033KROM file downloaded. ");
+        return 1; // different than zero is OK
+    }
+    printf("\r\033KError downloading ROM file: %d. Press a key to continue. ", download_status);
+    press_key("");
+    return 0; // A zero is return to menu
 }
 
 __uint16_t wifi_menu()

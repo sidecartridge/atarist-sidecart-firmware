@@ -125,8 +125,17 @@ int send_async_command(__uint16_t command, void *payload, __uint16_t payload_siz
     return 0;
 }
 
-int send_sync_command(__uint16_t command, void *payload, __uint16_t payload_size, __uint32_t timeout, __uint16_t show_spinner)
+int send_sync_command(__uint16_t command, void *payload, __uint16_t payload_size, __uint32_t timeout, __uint16_t spinner_type)
 {
+    switch (spinner_type)
+    {
+    case 1: // Spinning
+        printf(" ");
+        break;
+    case 2: // Countdown
+        printf("  ");
+        break;
+    }
     if (payload_size % 2 != 0)
     {
         payload_size++;
@@ -170,9 +179,14 @@ int send_sync_command(__uint16_t command, void *payload, __uint16_t payload_size
     while (active_wait > 0 && (remote_random_numer != random_seed))
     {
         Vsync();
-        if (show_spinner)
+        switch (spinner_type)
         {
+        case 1: // Spinning
             spinner(1);
+            break;
+        case 2: // Countdown
+            printf("\b\b%02d", active_wait / 50);
+            break;
         }
         active_wait--;
         remote_random_numer = *((volatile __uint32_t *)RANDOM_NUMBER_ADDRESS);

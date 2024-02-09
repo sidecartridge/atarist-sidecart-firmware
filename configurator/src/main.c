@@ -266,7 +266,9 @@ static int run()
             case 0x0003000: // Atari Falcon
                 break;
             default:
+#ifdef _DEBUG
                 printf("Atari ST detected with cookie-jar?.\n\r");
+#endif
                 break;
             }
         }
@@ -304,6 +306,7 @@ static int run()
     __uint16_t feature = err; // If the config is not loaded, exit the program. Otherwise, show the menu
     while (feature == 0)
     {
+        send_async_command(CLEAN_START, NULL, 0);
         feature = menu();
         switch (feature)
         {

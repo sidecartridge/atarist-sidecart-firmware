@@ -102,6 +102,8 @@ static __uint32_t random_number = 0x0;
 #define KEY_ENTER 0x72000D
 #define KEY_ESC 0x1001B
 
+#define PARAM_DOWNLOAD_TIMEOUT_SEC "DOWNLOAD_TIMEOUT_SEC"
+
 #define PRINT_APP_HEADER(version)                                                                                      \
     do                                                                                                                 \
     {                                                                                                                  \

@@ -38,8 +38,9 @@
 #define MENU_ALIGN_Y 4
 #define PROMT_ALIGN_X 7
 #define PROMT_ALIGN_Y 20
-#define MENU_CALLBACK_INTERVAL 6   // Every 6 seconds poll for the connection status
-#define ALLOWED_KEYS "123456DWCRE" // Only these keys are allowed
+#define MENU_CALLBACK_INTERVAL 6     // Default poll for the connection status in seconds
+#define MENU_CALLBACK_INTERVAL_MIN 2 // Minimum value for the menu callback interval in seconds
+#define ALLOWED_KEYS "123456DWCRE"   // Only these keys are allowed
 
 typedef struct
 {
@@ -81,7 +82,7 @@ static void blink_if_new_version_available(__uint16_t blink_toogle)
     }
 }
 
-static __int8_t get_number_active_wait(CallbackFunction networkCallback, CallbackFunction storageCallback)
+static __int8_t get_number_active_wait(CallbackFunction networkCallback, CallbackFunction storageCallback, __uint8_t refresh_interval_sec)
 {
     __uint16_t callback_interval = 0;
     __uint16_t first_time = TRUE;
@@ -117,7 +118,7 @@ static __int8_t get_number_active_wait(CallbackFunction networkCallback, Callbac
                 {
                     networkCallback(TRUE);
                 }
-                callback_interval = MENU_CALLBACK_INTERVAL * 50;
+                callback_interval = refresh_interval_sec * 50;
                 if (first_time)
                 {
                     first_time = FALSE;
@@ -158,12 +159,20 @@ static __int8_t get_number_active_wait(CallbackFunction networkCallback, Callbac
 
 static __int8_t menu()
 {
+    ConfigEntry *menu_refresh_sec = get_config_entry(PARAM_MENU_REFRESH_SEC);
+    __uint8_t menu_callback_interval = menu_refresh_sec != NULL ? atoi(menu_refresh_sec->value) : MENU_CALLBACK_INTERVAL;
+    // If the value is less than the minimum, set the minimum value
+    if (menu_callback_interval < MENU_CALLBACK_INTERVAL_MIN)
+    {
+        menu_callback_interval = MENU_CALLBACK_INTERVAL_MIN;
+    }
+
     PRINT_APP_HEADER(VERSION);
 
     locate(PROMT_ALIGN_X, PROMT_ALIGN_Y);
     char *prompt;
     asprintf(&prompt, "Choose the feature (1 to %d), or press 0 to exit: ", LAST_OPTION);
-    __int8_t feature = get_number_active_wait((CallbackFunction)get_connection_status, (CallbackFunction)get_storage_status);
+    __int8_t feature = get_number_active_wait((CallbackFunction)get_connection_status, (CallbackFunction)get_storage_status, menu_callback_interval);
 
     if (feature <= 0)
         feature = -1;

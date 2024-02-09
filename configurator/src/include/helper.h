@@ -82,7 +82,7 @@ static __uint32_t random_number = 0x0;
 #define NETWORKLOAD_WAIT_TIME 40
 #define ROMS_JSON_WAIT_TIME 5
 #define ROMSLOAD_WAIT_TIME 40
-#define FLOPPYDB_WAIT_TIME 5
+#define FLOPPYDB_WAIT_TIME 10
 #define FLOPPYLOAD_WAIT_TIME 40
 #define FLOPPYLIST_WAIT_TIME 10
 #define CONFIG_WAIT_TIME 10
@@ -103,6 +103,7 @@ static __uint32_t random_number = 0x0;
 #define KEY_ESC 0x1001B
 
 #define PARAM_DOWNLOAD_TIMEOUT_SEC "DOWNLOAD_TIMEOUT_SEC"
+#define PARAM_MENU_REFRESH_SEC "MENU_REFRESH_SEC"
 
 #define PRINT_APP_HEADER(version)                                                                                      \
     do                                                                                                                 \

@@ -56,6 +56,7 @@ static __uint32_t random_number = 0x0;
 #define NETWORKLOAD_WAIT_TIME 10
 #define ROMS_JSON_WAIT_TIME 2
 #define ROMSLOAD_WAIT_TIME 10
+#define ROMS_LOAD_WAIT_TIME_MIN 10
 #define FLOPPYDB_WAIT_TIME 2
 #define FLOPPYLOAD_WAIT_TIME 10
 #define FLOPPYLIST_WAIT_TIME 2
@@ -82,6 +83,7 @@ static __uint32_t random_number = 0x0;
 #define NETWORKLOAD_WAIT_TIME 40
 #define ROMS_JSON_WAIT_TIME 5
 #define ROMSLOAD_WAIT_TIME 40
+#define ROMS_LOAD_WAIT_TIME_MIN 10
 #define FLOPPYDB_WAIT_TIME 10
 #define FLOPPYLOAD_WAIT_TIME 40
 #define FLOPPYLIST_WAIT_TIME 10
@@ -131,5 +133,6 @@ int display_paginated_content(char *file_array, int num_files, int page_size, ch
 void print_centered(const char *str, int screen_width);
 char *prepend_file_to_array(char *file_array, const char *new_file);
 void read_string(char *string, size_t max_length);
+__uint16_t get_download_timeout();
 
 #endif /* HELPER_H_ */

@@ -35,6 +35,21 @@ char to_lowercase(char c)
     return c;
 }
 
+__uint16_t get_download_timeout()
+{
+    ConfigEntry *download_timeout_secs = get_config_entry(PARAM_DOWNLOAD_TIMEOUT_SEC);
+    __uint16_t value = ROMSLOAD_WAIT_TIME;
+    if (download_timeout_secs != NULL)
+    {
+        value = atoi(download_timeout_secs->value);
+    }
+    if (value < ROMS_LOAD_WAIT_TIME_MIN)
+    {
+        value = ROMS_LOAD_WAIT_TIME_MIN;
+    }
+    return value;
+}
+
 int get_number_within_range(char *prompt, __uint16_t num_items, __uint16_t first_value, char cancel_char)
 {
     char input[3];

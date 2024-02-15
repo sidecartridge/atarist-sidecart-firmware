@@ -10,7 +10,7 @@
 #include "commands.h"
 
 #define MAX_NETWORKS 100
-#define MAX_SSID_LENGTH 34
+#define MAX_SSID_LENGTH 36
 #define MAX_BSSID_LENGTH 20
 #define IPV4_ADDRESS_LENGTH 16
 #define IPV6_ADDRESS_LENGTH 40
@@ -54,14 +54,33 @@ typedef struct
     __uint16_t count; // The number of networks found/stored
 } WifiScanData;
 
+// Adjust alignment to 4 bytes always to pass the whole structure to the Atari ST
 typedef struct connection_data
 {
-    char ssid[MAX_SSID_LENGTH];             // SSID to connect
-    char ipv4_address[IPV4_ADDRESS_LENGTH]; // IP address
-    char ipv6_address[IPV6_ADDRESS_LENGTH]; // IPv6 address
-    char mac_address[MAX_BSSID_LENGTH];     // MAC address
-    __uint16_t status;                      // connection status
+    char ssid[MAX_SSID_LENGTH];                     // SSID to connect
+    char ipv4_address[IPV4_ADDRESS_LENGTH];         // IP address
+    char ipv6_address[IPV6_ADDRESS_LENGTH];         // IPv6 address
+    char mac_address[MAX_BSSID_LENGTH];             // MAC address
+    char gw_ipv4_address[IPV4_ADDRESS_LENGTH];      // Gateway IP address
+    char gw_ipv6_address[IPV6_ADDRESS_LENGTH];      // Gateway IPv6 address
+    char netmask_ipv4_address[IPV4_ADDRESS_LENGTH]; // Netmask IP address
+    char netmask_ipv6_address[IPV6_ADDRESS_LENGTH]; // Netmask IPv6 address
+    char dns_ipv4_address[IPV4_ADDRESS_LENGTH];     // DNS IP address
+    char dns_ipv6_address[IPV6_ADDRESS_LENGTH];     // DNS IPv6 address
+    char wifi_country[4];                           // WiFi country iso-3166-1 alpha-2 code. 2 characters. Example: ES. 2 extra characters for padding
+    __uint16_t wifi_auth_mode;                      // WiFi auth mode (WPA, WPA2, WPA3, etc)
+    __uint16_t wifi_scan_interval;                  // WiFi scan interval in seconds
+    __uint16_t network_status_poll_interval;        // Network status poll interval in seconds
+    __uint16_t network_status;                      // Network connection status
+    __uint16_t file_downloading_timeout;            // File downloading timeout in seconds
+    __uint16_t padding;                             // Padding to align to 4 bytes
 } ConnectionData;
+
+typedef struct
+{
+    char *code;
+    char *name;
+} CountryCodeMapping;
 
 #ifdef _DEBUG
 static WifiScanData wifi_scan_data_example = {

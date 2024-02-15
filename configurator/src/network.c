@@ -6,6 +6,75 @@ static __uint16_t latest_release_available;
 static ConnectionStatus connection_status = DISCONNECTED;
 static ConnectionData *connection_data = NULL;
 
+// current supported country code https://www.raspberrypi.com/documentation/pico-sdk/networking.html#CYW43_COUNTRY_
+// ISO-3166-alpha-2
+// XX select worldwide
+static char *valid_country_code[] = {
+    "XX", "AU", "AR", "AT", "BE", "BR", "CA", "CL",
+    "CN", "CO", "CZ", "DK", "EE", "FI", "FR", "DE",
+    "GR", "HK", "HU", "IS", "IN", "IL", "IT", "JP",
+    "KE", "LV", "LI", "LT", "LU", "MY", "MT", "MX",
+    "NL", "NZ", "NG", "NO", "PE", "PH", "PL", "PT",
+    "SG", "SK", "SI", "ZA", "KR", "ES", "SE", "CH",
+    "TW", "TH", "TR", "GB", "US"};
+
+static const size_t NUM_VALID_COUNTRY_CODES = sizeof(valid_country_code) / sizeof(valid_country_code[0]);
+
+static CountryCodeMapping country_codes[] = {
+    {"XX", "Worldwide"},
+    {"AU", "Australia"},
+    {"AR", "Argentina"},
+    {"AT", "Austria"},
+    {"BE", "Belgium"},
+    {"BR", "Brazil"},
+    {"CA", "Canada"},
+    {"CL", "Chile"},
+    {"CN", "China"},
+    {"CO", "Colombia"},
+    {"CZ", "Czech Republic"},
+    {"DK", "Denmark"},
+    {"EE", "Estonia"},
+    {"FI", "Finland"},
+    {"FR", "France"},
+    {"DE", "Germany"},
+    {"GR", "Greece"},
+    {"HK", "Hong Kong"},
+    {"HU", "Hungary"},
+    {"IS", "Iceland"},
+    {"IN", "India"},
+    {"IL", "Israel"},
+    {"IT", "Italy"},
+    {"JP", "Japan"},
+    {"KE", "Kenya"},
+    {"LV", "Latvia"},
+    {"LI", "Liechtenstein"},
+    {"LT", "Lithuania"},
+    {"LU", "Luxembourg"},
+    {"MY", "Malaysia"},
+    {"MT", "Malta"},
+    {"MX", "Mexico"},
+    {"NL", "Netherlands"},
+    {"NZ", "New Zealand"},
+    {"NG", "Nigeria"},
+    {"NO", "Norway"},
+    {"PE", "Peru"},
+    {"PH", "Philippines"},
+    {"PL", "Poland"},
+    {"PT", "Portugal"},
+    {"SG", "Singapore"},
+    {"SK", "Slovakia"},
+    {"SI", "Slovenia"},
+    {"ZA", "South Africa"},
+    {"KR", "South Korea"},
+    {"ES", "Spain"},
+    {"SE", "Sweden"},
+    {"CH", "Switzerland"},
+    {"TW", "Taiwan"},
+    {"TH", "Thailand"},
+    {"TR", "Turkey"},
+    {"GB", "United Kingdom"},
+    {"US", "United States"}};
+
 static void read_networks_from_memory(char *ssids, WifiNetworkInfo networks[], __uint16_t total_size)
 {
     char *current_ssid_position = ssids;
@@ -41,7 +110,7 @@ static __uint16_t get_network_count(char *file_array)
 char *get_status_str(ConnectionStatus status)
 {
     char *status_str = "Disconnected";
-    switch (connection_data->status)
+    switch (connection_data->network_status)
     {
     case DISCONNECTED:
         status_str = "Disconnected";
@@ -97,7 +166,7 @@ static void check_latest_release()
     // Check if the latest release is available
     if (connection_data != NULL)
     {
-        if (connection_data->status == CONNECTED_WIFI_IP)
+        if (connection_data->network_status == CONNECTED_WIFI_IP)
         {
             if (poll_latest_release)
             {
@@ -138,7 +207,7 @@ __uint16_t get_connection_status(__uint16_t show_bar)
             connection_data = malloc(sizeof(ConnectionData));
         }
         memcpy(connection_data, (ConnectionData *)(CONNECTION_STATUS_START_ADDRESS + sizeof(__uint32_t)), sizeof(ConnectionData));
-        char *status_str = get_status_str(connection_data->status);
+        char *status_str = get_status_str(connection_data->network_status);
         snprintf(buffer, STATUS_STRING_BUFFER_SIZE, "IP: %s | SSID: %s | Status: %s",
                  connection_data->ipv4_address, connection_data->ssid,
                  status_str);
@@ -168,7 +237,7 @@ __uint16_t get_latest_release()
 
 __uint16_t check_network_connection()
 {
-    if ((connection_data != NULL) && (connection_data->status != CONNECTED_WIFI_IP))
+    if ((connection_data != NULL) && (connection_data->network_status != CONNECTED_WIFI_IP))
     {
         printf("No WiFi connection found. Connect to a WiFi network first.\r\n");
         press_key("Press any key to exit...\r\n");
@@ -254,9 +323,6 @@ __uint16_t network_selector()
 
 __uint16_t roms_from_network_selector()
 {
-    ConfigEntry *download_timeout_secs = get_config_entry(PARAM_DOWNLOAD_TIMEOUT_SEC);
-    int download_timeout = download_timeout_secs != NULL ? atoi(download_timeout_secs->value) : ROMSLOAD_WAIT_TIME;
-
     PRINT_APP_HEADER(VERSION);
 
     printf("\r\n");
@@ -306,7 +372,7 @@ __uint16_t roms_from_network_selector()
 
     printf("\r\nDownloading ROM. Wait until the led in the board blinks a 'E' or 'D' in morse...");
 
-    int download_status = send_sync_command(DOWNLOAD_ROM, &rom_number, 2, download_timeout, COUNTDOWN);
+    int download_status = send_sync_command(DOWNLOAD_ROM, &rom_number, 2, get_download_timeout(), COUNTDOWN);
     if (download_status == 0)
     {
         printf("\r\033KROM file downloaded. ");
@@ -317,9 +383,25 @@ __uint16_t roms_from_network_selector()
     return 0; // A zero is return to menu
 }
 
+// Get the country name from the country code
+const char *get_country_name(const char *code)
+{
+    static char result[256]; // Large enough buffer for country name and code
+    for (int i = 0; i < NUM_VALID_COUNTRY_CODES; i++)
+    {
+        if (strcmp(code, country_codes[i].code) == 0)
+        {
+            // Format the result as "Country Name (Code)"
+            snprintf(result, sizeof(result), "%s (%s)", country_codes[i].name, country_codes[i].code);
+            return result;
+        }
+    }
+    return "Country not found";
+}
+
 __uint16_t wifi_menu()
 {
-    if (connection_data->status == DISCONNECTED)
+    if (connection_data->network_status == DISCONNECTED)
     {
         // If disconnected, connect to a network
         network_selector();
@@ -330,10 +412,45 @@ __uint16_t wifi_menu()
         PRINT_APP_HEADER(VERSION);
         printf("\r\n");
         printf("\r\n");
-        printf("SSID: %s\r\n", connection_data->ssid);
-        printf("IP: %s\r\n", connection_data->ipv4_address);
-        printf("MAC: %s\r\n", connection_data->mac_address);
-        printf("Status: %s\r\n", get_status_str(connection_data->status));
+        printf("+ Wi-Fi status\r\n");
+        printf("+-- SSID: %s\r\n", connection_data->ssid);
+        printf("+-- Auth mode: ");
+        switch (connection_data->wifi_auth_mode)
+        {
+        case 0:
+            printf("Open\r\n");
+            break;
+        case 1:
+        case 2:
+            printf("WPA TKIP PSK\r\n");
+            break;
+        case 3:
+        case 4:
+        case 5:
+            printf("WPA2 AES PSK\r\n");
+            break;
+        case 6:
+        case 7:
+        case 8:
+            printf("WPA2 MIXED PSK\r\n");
+            break;
+        default:
+            printf("Unknown (Open)\r\n");
+        }
+        printf("+-- Scan interval: %ds\r\n", connection_data->wifi_scan_interval);
+        printf("+-- Country: %s\r\n", get_country_name(connection_data->wifi_country));
+
+        printf("+-- Status: %s\r\n", get_status_str(connection_data->network_status));
+        printf("\r\n+ Network Status\r\n");
+        printf("+-- IP: %s\r\n", connection_data->ipv4_address);
+        printf("+-- Gateway: %s\r\n", connection_data->gw_ipv4_address);
+        printf("+-- Netmask: %s\r\n", connection_data->netmask_ipv4_address);
+        printf("+-- DNS: %s\r\n", connection_data->dns_ipv4_address);
+        printf("+-- MAC: %s\r\n", connection_data->mac_address);
+        printf("+-- Check interval: %ds\r\n", connection_data->network_status_poll_interval);
+        printf("\r\n+ Application status\r\n");
+        printf("+-- File download timeout: %ds\r\n", get_download_timeout());
+
         printf("\r\n");
         printf("Press [R]eset to restart the Wifi configuration. [ESC] to exit:");
 

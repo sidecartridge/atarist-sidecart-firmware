@@ -5,9 +5,6 @@
 
 __uint16_t rom_selector()
 {
-    ConfigEntry *download_timeout_secs = get_config_entry(PARAM_DOWNLOAD_TIMEOUT_SEC);
-    int download_timeout = download_timeout_secs != NULL ? atoi(download_timeout_secs->value) : ROMSLOAD_WAIT_TIME;
-
     PRINT_APP_HEADER(VERSION);
 
     printf("\r\n");
@@ -57,7 +54,7 @@ __uint16_t rom_selector()
 
     printf("\r\nLoading ROM. Wait until the led in the board blinks a 'E' or 'D' in morse...");
 
-    int download_status = send_sync_command(LOAD_ROM, &rom_number, 2, download_timeout, SPINNING);
+    int download_status = send_sync_command(LOAD_ROM, &rom_number, 2, get_download_timeout(), SPINNING);
     if (download_status == 0)
     {
         printf("\r\033KROM file loaded. ");

@@ -26,9 +26,6 @@ static __uint8_t get_floppy_size_input()
 
 static __uint16_t floppy_selector(mode_t floppy_command)
 {
-    ConfigEntry *download_timeout_secs = get_config_entry(PARAM_DOWNLOAD_TIMEOUT_SEC);
-    int download_timeout = download_timeout_secs != NULL ? atoi(download_timeout_secs->value) : ROMSLOAD_WAIT_TIME;
-
     __uint8_t again = TRUE;
     while (again)
     {
@@ -145,7 +142,7 @@ static __uint16_t floppy_selector(mode_t floppy_command)
             if (floppy_command == LOAD_FLOPPY_RW)
                 floppy_number--; // Bypass the menu added option to create images
 
-            send_sync_command(floppy_command, &floppy_number, 2, download_timeout, SPINNING);
+            send_sync_command(floppy_command, &floppy_number, 2, get_download_timeout(), SPINNING);
 
             printf("\r\033KFloppy image file loaded.");
         }

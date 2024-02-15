@@ -9,7 +9,7 @@
 #include "screen.h"
 #include "commands.h"
 
-#define MAX_ENTRIES 22
+#define MAX_ENTRIES 23
 #define MAX_KEY_LENGTH 20
 #define MAX_STRING_VALUE_LENGTH 64
 

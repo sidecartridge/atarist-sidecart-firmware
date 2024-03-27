@@ -21,7 +21,6 @@ typedef struct
     char floppy_name[256];
 } FloppyImageHeader;
 
-__uint16_t floppy_selector_ro();
-__uint16_t floppy_selector_rw();
+__uint16_t floppy_menu();
 
 #endif /* FLOPPYSELECTOR_H_ */

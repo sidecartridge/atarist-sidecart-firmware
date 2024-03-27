@@ -119,11 +119,8 @@ int send_async_command(__uint16_t command, void *payload, __uint16_t payload_siz
     __uint8_t command_payload_size = *((volatile __uint8_t *)(rom3_address + payload_size)); // Always even!
 
 #ifdef _DEBUG
-    printf("ROM3 memory address: 0x%08X\r\n", rom3_address);
-    printf("Payload size: %d\r\n", payload_size);
-    printf("Command header: 0x%02X\r\n", command_header);
-    printf("Command code: 0x%02X\r\n", command_code);
-    printf("Command payload size: 0x%02X\r\n", command_payload_size);
+    locate(0, 0);
+    printf("ROM3: 0x%08X, Size: %d, Header: 0x%02X, Code: 0x%02X, Payload: 0x%02X\r\n", rom3_address, payload_size, command_header, command_code, command_payload_size);
 #endif
 
     if ((payload_size > 0) && (payload != NULL))
@@ -133,6 +130,7 @@ int send_async_command(__uint16_t command, void *payload, __uint16_t payload_siz
         {
             __uint8_t value = *((volatile __uint8_t *)(rom3_address + *((__uint16_t *)(payload + i))));
 #ifdef _DEBUG
+            locate(0, 1);
             printf("Payload[%i]: 0x%04X / 0x%02X\r\n", i, *((__uint16_t *)(payload + i)), value);
 #endif
         }
@@ -161,14 +159,10 @@ int send_sync_command(__uint16_t command, void *payload, __uint16_t payload_size
     __uint8_t command_code = *((volatile __uint8_t *)(rom3_address + command));
     __uint8_t command_payload_size = *((volatile __uint8_t *)(rom3_address + payload_size + RANDOM_NUMBER_SIZE)); // Always even!
 #ifdef _DEBUG
-    printf("ROM3 memory address: 0x%08X\r\n", rom3_address);
-    printf("Payload size: %d\r\n", payload_size);
-    printf("Command header: 0x%02X\r\n", command_header);
-    printf("Command code: 0x%02X\r\n", command_code);
-    printf("Command payload size: 0x%02X\r\n", command_payload_size);
-    printf("Random seed address: 0x%08X\r\n", RANDOM_SEED_ADDRESS);
-    printf("New random seed: 0x%08X\r\n", random_seed);
-    printf("Timeout: %d\r\n", timeout);
+    locate(0, 0);
+    printf("ROM3: 0x%08X, Size: %d, Header: 0x%02X, Code: 0x%02X\r\n", rom3_address, payload_size, command_header, command_code);
+    locate(0, 1);
+    printf("Cmd payload size: 0x%02X, Seed addr: 0x%08X, New seed: 0x%08X, Timeout: %d\r\n", command_payload_size, RANDOM_SEED_ADDRESS, random_seed, timeout);
 #else
     // randomize the random seed
     random_seed = random_seed * *((__uint32_t *)_VBLOCK_ADDRESS);
@@ -184,6 +178,7 @@ int send_sync_command(__uint16_t command, void *payload, __uint16_t payload_size
         {
             __uint8_t value = *((volatile __uint8_t *)(rom3_address + *((__uint16_t *)(payload + i))));
 #ifdef _DEBUG
+            locate(0, 2);
             printf("Payload[%i]: 0x%04X / 0x%02X\r\n", i, *((__uint16_t *)(payload + i)), value);
 #endif
         }
@@ -210,8 +205,8 @@ int send_sync_command(__uint16_t command, void *payload, __uint16_t payload_size
     // If the active wait is 0, it means that the request was succesful
     // If the active wait is 1, it means that the request timedout
 #ifdef _DEBUG
-    printf("Active wait: %d\r\n", active_wait);
-    printf("Remote random number: 0x%08X\r\n", remote_random_numer);
+    locate(0, 3);
+    printf("Active wait: %d, Remote random number: 0x%08X\r\n", active_wait, remote_random_numer);
 #endif
     return (active_wait == 0);
 }
@@ -303,6 +298,50 @@ __uint16_t get_file_count(char *file_array)
     }
 
     return count;
+}
+
+char *get_file_at_index(char *file_array, __uint16_t index)
+{
+    __uint16_t current_index = 0;
+    char *current_ptr = file_array;
+
+    while (*current_ptr)
+    { // as long as we don't hit the double null terminator
+        if (current_index == index)
+        {
+            return current_ptr;
+        }
+
+        // skip past the current filename to the next
+        while (*current_ptr)
+            current_ptr++;
+        current_ptr++; // skip the null terminator for the current filename
+        current_index++;
+    }
+
+    return NULL;
+}
+
+__uint16_t get_index_of_filename(const char *file_array, char *filename)
+{
+    __uint16_t current_index = 0;
+    char *current_ptr = (char *)file_array;
+
+    while (*current_ptr)
+    { // as long as we don't hit the double null terminator
+        if (strcmp(current_ptr, filename) == 0)
+        {
+            return current_index;
+        }
+
+        // skip past the current filename to the next
+        while (*current_ptr)
+            current_ptr++;
+        current_ptr++; // skip the null terminator for the current filename
+        current_index++;
+    }
+
+    return -1;
 }
 
 char *print_file_at_index(char *current_ptr, __uint16_t index, int num_columns)

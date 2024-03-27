@@ -24,12 +24,13 @@ __uint16_t rtc_menu()
             printf("\r\n");
             printf("\r\n");
 
+#ifndef _DEBUG
             if (check_network_connection() > 0)
             {
                 // No network connection. Back to main menu
                 return 0;
             }
-
+#endif
             ConfigEntry *ntp_server_host_entry = get_config_entry("RTC_NTP_SERVER_HOST");
             ConfigEntry *ntp_server_port_entry = get_config_entry("RTC_NTP_SERVER_PORT");
             ConfigEntry *rtc_type_entry = get_config_entry("RTC_TYPE");

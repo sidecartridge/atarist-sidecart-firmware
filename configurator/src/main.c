@@ -14,10 +14,10 @@
 #define ROM_MICROSD_SELECTOR_OPTION_LINE 1
 #define ROM_NETWORK_SELECTOR_OPTION '2'
 #define ROM_NETWORK_SELECTOR_OPTION_LINE 2
-#define FLOPPY_RO_MICROSD_SELECTOR_OPTION '3'
-#define FLOPPY_RO_MICROSD_SELECTOR_OPTION_LINE 3
-#define FLOPPY_RW_MICROSD_SELECTOR_OPTION '4'
-#define FLOPPY_RW_MICROSD_SELECTOR_OPTION_LINE 4
+#define FLOPPY_MICROSD_SELECTOR_OPTION '3'
+#define FLOPPY_MICROSD_SELECTOR_OPTION_LINE 3
+#define HARDDISK_MICROSD_SELECTOR_OPTION '4'
+#define HARDDISK_MICROSD_SELECTOR_OPTION_LINE 4
 #define FLOPPY_DB_SELECTOR_OPTION '5'
 #define FLOPPY_DB_SELECTOR_OPTION_LINE 5
 #define RTC_SELECTOR_OPTION '6'
@@ -55,8 +55,8 @@ typedef void (*CallbackFunction)();
 static MenuItem menuItems[] = {
     {ROM_MICROSD_SELECTOR_OPTION, ROM_MICROSD_SELECTOR_OPTION_LINE, "Emulate ROM image from microSD card"},
     {ROM_NETWORK_SELECTOR_OPTION, ROM_NETWORK_SELECTOR_OPTION_LINE, "Emulate ROM image from Wi-Fi"},
-    {FLOPPY_RO_MICROSD_SELECTOR_OPTION, FLOPPY_RO_MICROSD_SELECTOR_OPTION_LINE, "Emulate Floppy image from microSD in Read-Only mode (PREVIEW)"},
-    {FLOPPY_RW_MICROSD_SELECTOR_OPTION, FLOPPY_RW_MICROSD_SELECTOR_OPTION_LINE, "Emulate Floppy image from microSD in Read-Write mode (PREVIEW)"},
+    {FLOPPY_MICROSD_SELECTOR_OPTION, FLOPPY_MICROSD_SELECTOR_OPTION_LINE, "Emulate Floppy"},
+    {HARDDISK_MICROSD_SELECTOR_OPTION, HARDDISK_MICROSD_SELECTOR_OPTION_LINE, "Emulate Hard Disk (Enchilada mode)"},
     {FLOPPY_DB_SELECTOR_OPTION, FLOPPY_DB_SELECTOR_OPTION_LINE, "Download from the Floppy Images database (PREVIEW)"},
     {RTC_SELECTOR_OPTION, RTC_SELECTOR_OPTION_LINE, "Real Time Clock"},
     {DELAY_TOGGLE_SELECTOR_OPTION, DELAY_TOGGLE_SELECTOR_OPTION_LINE, ""},
@@ -325,11 +325,8 @@ static int run()
         case ROM_NETWORK_SELECTOR_OPTION:
             feature = roms_from_network_selector();
             break;
-        case FLOPPY_RO_MICROSD_SELECTOR_OPTION:
-            feature = floppy_selector_ro();
-            break;
-        case FLOPPY_RW_MICROSD_SELECTOR_OPTION:
-            feature = floppy_selector_rw();
+        case FLOPPY_MICROSD_SELECTOR_OPTION:
+            feature = floppy_menu();
             break;
         case FLOPPY_DB_SELECTOR_OPTION:
             feature = floppy_db();

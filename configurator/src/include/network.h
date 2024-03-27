@@ -121,8 +121,7 @@ static WifiScanData wifi_scan_data_example = {
 static ConnectionData connection_data_example = {
     .ssid = "HOME_NETWORK",
     .ipv4_address = "1.2.3.4",
-    .ipv6_address = "UNKNOWN",
-    .status = CONNECTED_WIFI_IP};
+    .ipv6_address = "UNKNOWN"};
 #endif
 
 __uint16_t get_latest_release();

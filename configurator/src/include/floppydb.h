@@ -9,6 +9,7 @@
 #include "helper.h"
 #include "storage.h"
 #include "network.h"
+#include "floppyselector.h"
 
 __uint16_t floppy_db();
 

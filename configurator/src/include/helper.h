@@ -112,7 +112,7 @@ static __uint32_t random_number = 0x0;
     {                                                                                                                  \
         clearHome();                                                                                                   \
         locate(0, 0);                                                                                                  \
-        printf("\033p         ATARI ST SIDECART CONFIGURATOR v%s - (C)2023 @sidecartridge        \033q\r\n", version); \
+        printf("\033p         ATARI ST SIDECART CONFIGURATOR v%s - (C)2023-24 @sidecartridge     \033q\r\n", version); \
     } while (0)
 
 #define max(a, b) ((a) > (b) ? (a) : (b))
@@ -128,7 +128,9 @@ void sleep_seconds(__uint16_t seconds, __uint16_t silent);
 void spinner(__uint16_t spinner_update_frequency);
 char *read_files_from_memory(char *memory_location);
 __uint16_t get_file_count(char *file_array);
+char *get_file_at_index(char *file_array, __uint16_t index);
 char *print_file_at_index(char *current_ptr, __uint16_t index, int num_columns);
+__uint16_t get_index_of_filename(const char *file_array, char *filename);
 int display_paginated_content(char *file_array, int num_files, int page_size, char *item_name, __uint32_t *keypress);
 void print_centered(const char *str, int screen_width);
 char *prepend_file_to_array(char *file_array, const char *new_file);

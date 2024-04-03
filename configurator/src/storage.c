@@ -52,7 +52,14 @@ __uint16_t get_storage_status(__uint16_t show_bar)
                 snprintf(space_str, sizeof(space_str), "%i of %iMB used | ", usedSpace, totalSpace);
                 if (sd_card_data->roms_folder_status == ROMS_FOLDER_OK)
                 {
-                    snprintf(roms_str, sizeof(roms_str), "%i ROM images | ", romsCount);
+                    if (romsCount == 0)
+                    {
+                        snprintf(roms_str, sizeof(roms_str), "'%s' found | ", romsFolder);
+                    }
+                    else
+                    {
+                        snprintf(roms_str, sizeof(roms_str), "%i ROM images | ", romsCount);
+                    }
                 }
                 else
                 {
@@ -60,7 +67,14 @@ __uint16_t get_storage_status(__uint16_t show_bar)
                 }
                 if (sd_card_data->floppies_folder_status == FLOPPIES_FOLDER_OK)
                 {
-                    snprintf(floppies_str, sizeof(floppies_str), "%i Disk images | ", floppiesCount);
+                    if (floppiesCount == 0)
+                    {
+                        snprintf(floppies_str, sizeof(floppies_str), "'%s' found | ", floppiesFolder);
+                    }
+                    else
+                    {
+                        snprintf(floppies_str, sizeof(floppies_str), "%i Disk images | ", floppiesCount);
+                    }
                 }
                 else
                 {
@@ -68,7 +82,14 @@ __uint16_t get_storage_status(__uint16_t show_bar)
                 }
                 if (sd_card_data->harddisks_folder_status == HARDDISKS_FOLDER_OK)
                 {
-                    snprintf(harddisks_str, sizeof(harddisks_str), "%i Files in HD", harddisks_str);
+                    if (harddisksCount == 0)
+                    {
+                        snprintf(harddisks_str, sizeof(harddisks_str), "'%s' found", harddisksFolder);
+                    }
+                    else
+                    {
+                        snprintf(harddisks_str, sizeof(harddisks_str), "%i Files in HD", harddisksCount);
+                    }
                 }
                 else
                 {

@@ -392,7 +392,7 @@ int display_paginated_content(char *file_array, int num_files, int page_size, ch
     int current_index = 0;
     locate(0, 22);
     Cconws("Use [UP] and [DOWN] arrows to select. [LEFT] and [RIGHT] to paginate.\r\n");
-    Cconws("Press [ENTER] or [RETURN] to load. [ESC] to return to main menu.");
+    Cconws("Press [ENTER] or [RETURN] to confirm. [ESC] to return to main menu.");
 
     while (selected_rom < 0)
     {

@@ -67,6 +67,9 @@ floppyselector.o: prepare
 floppydb.o: prepare
 	$(CC) $(CFLAGS) $(SOURCES_DIR)/floppydb.c -o $(BUILD_DIR)/floppydb.o
 
+harddisk.o: prepare
+	$(CC) $(CFLAGS) $(SOURCES_DIR)/harddisk.c -o $(BUILD_DIR)/harddisk.o
+
 config.o: prepare
 	$(CC) $(CFLAGS) $(SOURCES_DIR)/config.c -o $(BUILD_DIR)/config.o
 
@@ -85,12 +88,13 @@ rtc.o: prepare
 main.o: prepare
 	$(CC) $(CFLAGS) $(SOURCES_DIR)/main.c -o $(BUILD_DIR)/main.o
 
-main: screen.o helper.o network.o config.o reset.o romselector.o floppyselector.o floppydb.o storage.o rtc.o main.o
+main: screen.o helper.o network.o config.o reset.o romselector.o floppyselector.o floppydb.o harddisk.o storage.o rtc.o main.o
 	$(CC) $(LIBCMINI)/lib/crt0.o \
 		  $(BUILD_DIR)/screen.o \
 		  $(BUILD_DIR)/romselector.o \
 		  $(BUILD_DIR)/floppyselector.o \
 		  $(BUILD_DIR)/floppydb.o \
+		  $(BUILD_DIR)/harddisk.o \
 		  $(BUILD_DIR)/config.o \
 		  $(BUILD_DIR)/reset.o \
 		  $(BUILD_DIR)/helper.o \

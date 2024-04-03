@@ -9,6 +9,7 @@
 #include "include/reset.h"
 #include "include/storage.h"
 #include "include/rtc.h"
+#include "include/harddisk.h"
 
 #define ROM_MICROSD_SELECTOR_OPTION '1'
 #define ROM_MICROSD_SELECTOR_OPTION_LINE 1
@@ -56,8 +57,8 @@ static MenuItem menuItems[] = {
     {ROM_MICROSD_SELECTOR_OPTION, ROM_MICROSD_SELECTOR_OPTION_LINE, "Emulate ROM image from microSD card"},
     {ROM_NETWORK_SELECTOR_OPTION, ROM_NETWORK_SELECTOR_OPTION_LINE, "Emulate ROM image from Wi-Fi"},
     {FLOPPY_MICROSD_SELECTOR_OPTION, FLOPPY_MICROSD_SELECTOR_OPTION_LINE, "Emulate Floppy"},
-    {HARDDISK_MICROSD_SELECTOR_OPTION, HARDDISK_MICROSD_SELECTOR_OPTION_LINE, "Emulate Hard Disk (Enchilada mode)"},
-    {FLOPPY_DB_SELECTOR_OPTION, FLOPPY_DB_SELECTOR_OPTION_LINE, "Download from the Floppy Images database (PREVIEW)"},
+    {HARDDISK_MICROSD_SELECTOR_OPTION, HARDDISK_MICROSD_SELECTOR_OPTION_LINE, "Emulate Hard Disk (EXPERIMENTAL)"},
+    {FLOPPY_DB_SELECTOR_OPTION, FLOPPY_DB_SELECTOR_OPTION_LINE, "Download from the Floppy Images database"},
     {RTC_SELECTOR_OPTION, RTC_SELECTOR_OPTION_LINE, "Real Time Clock"},
     {DELAY_TOGGLE_SELECTOR_OPTION, DELAY_TOGGLE_SELECTOR_OPTION_LINE, ""},
     {NETWORK_SELECTOR_OPTION, NETWORK_SELECTOR_OPTION_LINE, "Wi-Fi configuration"},
@@ -292,10 +293,19 @@ static int run()
     change_cpu_speed();
 
     send_async_command(CLEAN_START, NULL, 0);
-    please_wait_silent(1);
+    printf("\r\033KReading the microSD. Be patient...");
+
+    init_config();
+    init_connection_status();
+    init_storage();
+    __uint16_t err = read_config();
 
     ScreenContext screenContext;
     initScreenContext(&screenContext);
+
+    __uint8_t is_dark_mode = 0;
+    ConfigEntry *dark_mode = get_config_entry(PARAM_CONFIGURATOR_DARK);
+    is_dark_mode = (dark_mode != NULL && (dark_mode->value[0] == 't' || dark_mode->value[0] == 'T'));
 
     if (screenContext.savedResolution == HIGH_RES)
     {
@@ -304,13 +314,15 @@ static int run()
     else
     {
         __uint16_t palette[4] = {0xFFF, 0x000, 0x000, 0x000};
+        if (is_dark_mode)
+        {
+            palette[0] = 0x000;
+            palette[1] = 0xFFF;
+            palette[2] = 0xFFF;
+            palette[3] = 0xFFF;
+        }
         initMedResolution(palette);
     }
-
-    init_config();
-    init_connection_status();
-    init_storage();
-    __uint16_t err = read_config();
 
     __uint16_t feature = err; // If the config is not loaded, exit the program. Otherwise, show the menu
     while (feature == 0)
@@ -327,6 +339,9 @@ static int run()
             break;
         case FLOPPY_MICROSD_SELECTOR_OPTION:
             feature = floppy_menu();
+            break;
+        case HARDDISK_MICROSD_SELECTOR_OPTION:
+            feature = harddisk_menu();
             break;
         case FLOPPY_DB_SELECTOR_OPTION:
             feature = floppy_db();

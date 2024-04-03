@@ -173,7 +173,7 @@ __uint16_t rtc_menu()
             if ((key == 'B') || (key == 'b'))
             {
                 ConfigEntry *entry = (ConfigEntry *)malloc(sizeof(ConfigEntry));
-                strncpy(entry->key, "BOOT_FEATURE", MAX_KEY_LENGTH);
+                strncpy(entry->key, PARAM_BOOT_FEATURE, MAX_KEY_LENGTH);
                 strncpy(entry->value, "RTC_EMULATOR", MAX_STRING_VALUE_LENGTH);
                 entry->dataType = TYPE_STRING;
                 send_sync_command(PUT_CONFIG_STRING, entry, sizeof(ConfigEntry), RTC_WAIT_TIME, FALSE);

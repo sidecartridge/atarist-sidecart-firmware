@@ -97,7 +97,7 @@ void load_all_entries()
     }
 }
 
-static char *read_input(__uint16_t type)
+char *read_input(const char *input_text, __uint16_t type)
 {
     char buffer[MAX_STRING_VALUE_LENGTH + 2]; // +1 for '\0' and +1 to check overflow
     char *result = (char *)malloc(MAX_STRING_VALUE_LENGTH + 1);
@@ -114,13 +114,16 @@ static char *read_input(__uint16_t type)
     switch (type)
     {
     case TYPE_INT:
-        printf("Please enter an integer value: ");
+        printf(input_text == NULL ? "Please enter an integer value: " : input_text);
         break;
     case TYPE_STRING:
-        printf("Please enter a string (max %d characters): ", MAX_STRING_VALUE_LENGTH);
+        printf(input_text == NULL ? "Please enter a string (max %d characters): " : input_text, MAX_STRING_VALUE_LENGTH);
         break;
     case TYPE_BOOL:
-        printf("Please enter a boolean value (true or false): ");
+        printf(input_text == NULL ? "Please enter a boolean value (true or false): " : input_text);
+        break;
+    case TYPE_CHAR:
+        printf(input_text == NULL ? "Please enter a character: " : input_text);
         break;
     }
 
@@ -208,6 +211,18 @@ static char *read_input(__uint16_t type)
                 printf("Invalid boolean. Please enter a boolean value (true or false): ");
             }
         }
+        else if (type == TYPE_CHAR)
+        {
+            if (strlen(buffer) == 1)
+            {
+                strncpy(result, buffer, MAX_STRING_VALUE_LENGTH);
+                break;
+            }
+            else
+            {
+                printf("Invalid input. Please enter a single character: ");
+            }
+        }
     }
 
     return result;
@@ -247,7 +262,7 @@ __uint16_t configuration()
         param_index = param_index - 1;
 
         printf("\r\n%s = %s\r\r\n", configData->entries[param_index].key, configData->entries[param_index].value);
-        char *input = read_input(configData->entries[param_index].dataType);
+        char *input = read_input(NULL, configData->entries[param_index].dataType);
         printf("\r\n");
 
         printf("The input is: %s\r\n", input);

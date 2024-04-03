@@ -110,6 +110,7 @@ char *read_input(const char *input_text, __uint16_t type)
         exit(1);
     }
 
+    printf("\r\033K");
     // Displaying a prompt based on type
     switch (type)
     {
@@ -233,25 +234,86 @@ __uint16_t configuration()
     PRINT_APP_HEADER(VERSION);
 
     printf("\r\n");
+    printf("\r\n");
 
     printf("Loading configuration...");
 
+#ifndef _DEBUG
     send_sync_command(GET_CONFIG, NULL, 0, CONFIG_WAIT_TIME, TRUE);
 
-    printf("\r\n");
-
     load_all_entries();
+#else
+    configData = &config_data_example;
+#endif
 
     flush_kbd();
 
     while (1)
     {
-        print_table(configData);
+        // print_table(configData);
 
-        char *prompt;
-        asprintf(&prompt, "Enter the parameter to modify (1 to %d) or [C]ancel: ", configData->count);
+        // Allocate memory for the entire data array
+        char *data_array = (char *)malloc(configData->count * 81 * sizeof(char));
+        if (!data_array)
+        {
+            // Handle memory allocation failure
+            printf("Failed to allocate memory for data_array.\r\n");
+            return;
+        }
 
-        int param_index = get_number_within_range(prompt, configData->count, 1, 'C');
+        for (size_t i = 0; i < configData->count; i++)
+        {
+            char valueStr[40]; // Buffer to format the value
+
+            // Format the value based on its type
+            switch (configData->entries[i].dataType)
+            {
+            case TYPE_INT:
+            case TYPE_STRING:
+            case TYPE_BOOL:
+                snprintf(valueStr, sizeof(valueStr), "%s", configData->entries[i].value);
+                break;
+            default:
+                snprintf(valueStr, sizeof(valueStr), "Unknown");
+                break;
+            }
+
+            char *typeStr;
+            // Determine the type string
+            switch (configData->entries[i].dataType)
+            {
+            case TYPE_INT:
+                typeStr = "INT";
+                break;
+            case TYPE_STRING:
+                typeStr = "STRING";
+                break;
+            case TYPE_BOOL:
+                typeStr = "BOOL";
+                break;
+            default:
+                typeStr = "???";
+                break;
+            }
+
+            // Calculate the starting position for the current entry
+            char *current_position = data_array + (i * 81);
+
+            // Format the entire entry and write it to the current position
+            snprintf(current_position, 81, "%2d | %-20s | %-40s | %-8s", i + 1, configData->entries[i].key, valueStr, typeStr);
+
+            // Ensure the entry is right-padded with spaces to fill 80 characters, followed by a null terminator
+            for (int j = strlen(current_position); j < 80; j++)
+            {
+                current_position[j] = ' ';
+            }
+            current_position[80] = '\0'; // Explicitly null-terminate the string
+        }
+
+        // Remember to free data_array when done to avoid memory leaks
+
+        __uint32_t last_key_pressed = 0;
+        __int16_t param_index = display_paginated_content(data_array, configData->count, ELEMENTS_PER_PAGE - 1, "Configuration parameters", &last_key_pressed);
 
         if (param_index <= 0)
         {
@@ -261,7 +323,8 @@ __uint16_t configuration()
 
         param_index = param_index - 1;
 
-        printf("\r\n%s = %s\r\r\n", configData->entries[param_index].key, configData->entries[param_index].value);
+        locate(0, 22);
+        printf("\033K%s = %s\r\r\n", configData->entries[param_index].key, configData->entries[param_index].value);
         char *input = read_input(NULL, configData->entries[param_index].dataType);
         printf("\r\n");
 

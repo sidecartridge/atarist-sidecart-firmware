@@ -1,6 +1,6 @@
 # ATARI ST Sidecart ROM Emulator Firmware
 
-This repository hosts the firmware code for the Sidecart ROM Emulator designed for Atari ST/STE/Mega systems. In tandem with the [Sidecart Raspberry Pico firmware](https://github.com/diegoparrilla/atarist-sidecart-raspberry-pico), this firmware facilitates the functioning of the Sidecart ROM Emulator.
+This repository hosts the firmware code for the Sidecart ROM Emulator designed for Atari ST/STE/Mega systems. In tandem with the [Sidecart Raspberry Pico firmware](https://github.com/sidecartridge/atarist-sidecart-raspberry-pico), this firmware facilitates the functioning of the Sidecart ROM Emulator.
 
 ## Introduction
 
@@ -12,7 +12,7 @@ The source is bifurcated into:
 
 2. A bootstrapping ROM, an assembly program housed in the `/src` directory. This ROM embeds the configuration tool as an executable.
 
-**Note**: This ROM cannot be loaded or emulated like conventional ROMs. It has to be merged directly into the Sidecart RP2040 ROM Emulator firmware. Additional details are available in the [Sidecart Raspberry Pico firmware](https://github.com/diegoparrilla/atarist-sidecart-raspberry-pico).
+**Note**: This ROM cannot be loaded or emulated like conventional ROMs. It has to be merged directly into the Sidecart RP2040 ROM Emulator firmware. Additional details are available in the [Sidecart Raspberry Pico firmware](https://github.com/sidecartridge/atarist-sidecart-raspberry-pico).
 
 Newcomers to the Sidecart ROM Emulator are encouraged to peruse the official [Sidecart ROM Emulator website](https://sidecartridge.com) for a comprehensive understanding.
 
@@ -20,7 +20,7 @@ Newcomers to the Sidecart ROM Emulator are encouraged to peruse the official [Si
 
 - An Atari STe computer (or a compatible emulator). Various emulators are accessible for platforms like Windows, Linux, and Mac. [Hatari](http://hatari.tuxfamily.org/) comes recommended, but [MiSTer](https://misterfpga.org/) is also a worthy contender. The requirement is a minimum of 512KB of RAM on any Atari ST.
 
-- The [atarist-toolkit-docker](https://github.com/diegoparrilla/atarist-toolkit-docker) is pivotal. Familiarize yourself with its installation and usage.
+- The [atarist-toolkit-docker](https://github.com/sidecartridge/atarist-toolkit-docker) is pivotal. Familiarize yourself with its installation and usage.
 
 - A `git` client, command line or GUI, your pick.
 
@@ -33,7 +33,7 @@ Having your Atari ST computer, Hatari emulator, or MiSTer Atari ST operational, 
 1. Clone this repository:
 
 ```
-$ git clone https://github.com/diegoparrilla/atarist-sidecart-firmware.git
+$ git clone https://github.com/sidecartridge/atarist-sidecart-firmware.git
 ```
 
 2. Navigate to the cloned repository:
@@ -52,14 +52,14 @@ cd atarist-sidecart-firmware
 
 ## Building the ROM Loader
 
-For those inclined to tweak the ROM loader, it's possible. The ROM loader, crafted in C, compiles via the [atarist-toolkit-docker](https://github.com/diegoparrilla/atarist-toolkit-docker).
+For those inclined to tweak the ROM loader, it's possible. The ROM loader, crafted in C, compiles via the [atarist-toolkit-docker](https://github.com/sidecartridge/atarist-toolkit-docker).
 
 For illustration, let's use the Hatari emulator on macOS:
 
 1. Begin by ensuring the repository is cloned. If not:
 
 ```
-$ git clone https://github.com/diegoparrilla/atarist-sidecart-firmware.git
+$ git clone https://github.com/sidecartridge/atarist-sidecart-firmware.git
 ```
 
 2. Enter the cloned repository, specifically the `romloader` directory:
@@ -74,7 +74,7 @@ cd atarist-sidecart-firmware/romloader
 export ST_WORKING_FOLDER=<ABSOLUTE_PATH_TO_THE_FOLDER_WHERE_YOU_CLONED_THE_REPO/romloader>
 ```
 
-4. Embark on your code modifications within the `/src` folder. For insights on leveraging the environment, refer to the [atarist-toolkit-docker](https://github.com/diegoparrilla/atarist-toolkit-docker) examples.
+4. Embark on your code modifications within the `/src` folder. For insights on leveraging the environment, refer to the [atarist-toolkit-docker](https://github.com/sidecartridge/atarist-toolkit-docker) examples.
 
 5. Leverage the provided Makefile for the build. The `stcmd` command connects with the tools in the Docker image. Engage the `_DEBUG` flag (set to 1) to activate debug messages and bypass direct ROM usage:
 
@@ -90,14 +90,14 @@ hatari --fast-boot true --tos-res med romloader/dist/ROMLOAD.TOS &
 
 ## Releases
 
-For releases, head over to the [Releases page](https://github.com/diegoparrilla/atarist-sidecart-firmware/releases). The latest release is always recommended.
+For releases, head over to the [Releases page](https://github.com/sidecartridge/atarist-sidecart-firmware/releases). The latest release is always recommended.
 
 Note: The build output isn't akin to standard ROM images. The release files have to be incorporated into the Sidecart RP2040 ROM Emulator firmware.
 
 ## Resources 
 
 - [Sidecart ROM Emulator website](https://sidecartridge.com)
-- [Sidecart Raspberry Pico firmware](https://github.com/diegoparrilla/atarist-sidecart-raspberry-pico) - Where the second phase of the Sidecart ROM Emulator firmware evolution unfolds.
+- [Sidecart Raspberry Pico firmware](https://github.com/sidecartridge/atarist-sidecart-raspberry-pico) - Where the second phase of the Sidecart ROM Emulator firmware evolution unfolds.
 
 ## License
 

@@ -20,7 +20,7 @@ jobs:
         python-version: ${{ matrix.python-version }}
 
     - name: Install AtariST Toolkit Docker image
-      run: curl -sL https://github.com/diegoparrilla/atarist-toolkit-docker/releases/download/latest/linux.sh | bash
+      run: curl -sL https://github.com/sidecartridge/atarist-toolkit-docker/releases/download/latest/linux.sh | bash
 
     - name: Run - remove interactive
       run: sed -i 's/-it//' /usr/local/bin/stcmd

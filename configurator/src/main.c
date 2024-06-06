@@ -39,6 +39,7 @@
 #define MENU_ALIGN_Y 4
 #define PROMT_ALIGN_X 7
 #define PROMT_ALIGN_Y 20
+#define MENU_BLINKING_POSITION 41
 #define MENU_CALLBACK_INTERVAL 6     // Default poll for the connection status in seconds
 #define MENU_CALLBACK_INTERVAL_MIN 2 // Minimum value for the menu callback interval in seconds
 #define ALLOWED_KEYS "123456DWCRE"   // Only these keys are allowed
@@ -78,7 +79,7 @@ static void blink_if_new_version_available(__uint16_t blink_toogle)
 {
     if (get_latest_release())
     {
-        locate(47, 0);
+        locate(MENU_BLINKING_POSITION, 0);
         printf("\033p%s\033q", blink_toogle ? "!" : " ");
     }
 }

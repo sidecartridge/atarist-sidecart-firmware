@@ -112,7 +112,7 @@ static __uint32_t random_number = 0x0;
     {                                                                                                                  \
         clearHome();                                                                                                   \
         locate(0, 0);                                                                                                  \
-        printf("\033p         ATARI ST SIDECART CONFIGURATOR v%s - (C)2023-24 @sidecartridge     \033q\r\n", version); \
+        printf("\033p  SidecarTridge Multi-Device Configurator v%s - (C)2023-24 @sidecartridge   \033q\r\n", version); \
     } while (0)
 
 #define max(a, b) ((a) > (b) ? (a) : (b))

@@ -288,7 +288,7 @@ __uint16_t floppy_menu()
 #endif
                 char *file_array = read_files_from_memory((char *)file_list_mem);
                 __uint16_t floppy_number = get_index_of_filename(file_array, floppy_image_a);
-                if (floppy_number > 0)
+                if (floppy_number >= 0)
                 {
                     floppy_number = floppy_number + 1; // Always add 1 to the index
                     __uint16_t floppy_command = LOAD_FLOPPY_RO;
@@ -318,4 +318,3 @@ __uint16_t floppy_menu()
         }
     }
 }
-

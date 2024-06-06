@@ -176,7 +176,7 @@ __uint16_t harddisk_menu()
             }
             else
             {
-                press_key("\r\033KFloppy image file not found.");
+                press_key("\r\033KBoot option not found.");
                 return 0;
             }
         }

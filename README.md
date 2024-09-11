@@ -8,7 +8,7 @@ The Sidecart ROM Emulator mimics the behavior of Atari ST cartridges and their c
 
 The source is bifurcated into:
 
-1. A configuration tool, a C program found in the `/romloader` directory.
+1. A configuration tool, a C program found in the `/configurator` directory.
 
 2. A bootstrapping ROM, an assembly program housed in the `/src` directory. This ROM embeds the configuration tool as an executable.
 
@@ -62,16 +62,16 @@ For illustration, let's use the Hatari emulator on macOS:
 $ git clone https://github.com/sidecartridge/atarist-sidecart-firmware.git
 ```
 
-2. Enter the cloned repository, specifically the `romloader` directory:
+2. Enter the cloned repository, specifically the `configurator` directory:
 
 ```
-cd atarist-sidecart-firmware/romloader
+cd atarist-sidecart-firmware/configurator
 ```
 
-3. Establish the `ST_WORKING_FOLDER` environment variable, linking it to the `/romloader` directory of the cloned repository:
+3. Establish the `ST_WORKING_FOLDER` environment variable, linking it to the `/configurator` directory of the cloned repository:
 
 ```
-export ST_WORKING_FOLDER=<ABSOLUTE_PATH_TO_THE_FOLDER_WHERE_YOU_CLONED_THE_REPO/romloader>
+export ST_WORKING_FOLDER=<ABSOLUTE_PATH_TO_THE_FOLDER_WHERE_YOU_CLONED_THE_REPO/configurator>
 ```
 
 4. Embark on your code modifications within the `/src` folder. For insights on leveraging the environment, refer to the [atarist-toolkit-docker](https://github.com/sidecartridge/atarist-toolkit-docker) examples.
@@ -82,10 +82,10 @@ export ST_WORKING_FOLDER=<ABSOLUTE_PATH_TO_THE_FOLDER_WHERE_YOU_CLONED_THE_REPO/
 stcmd make DEBUG_MODE=1 
 ```
 
-6. The outcome is `ROMLOAD.TOS` in the `dist` folder. This file is ready for execution on the Atari ST emulator or computer. If using Hatari, you can launch it as follows (assuming `hatari` is path-accessible):
+6. The outcome is `SIDECART.TOS` in the `dist` folder. This file is ready for execution on the Atari ST emulator or computer. If using Hatari, you can launch it as follows (assuming `hatari` is path-accessible):
 
 ```
-hatari --fast-boot true --tos-res med romloader/dist/ROMLOAD.TOS &
+hatari --fast-boot true --tos-res med configurator/dist/SIDECART.TOS &
 ```
 
 ## Releases

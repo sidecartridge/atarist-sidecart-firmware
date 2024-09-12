@@ -10,8 +10,9 @@
 #include "commands.h"
 
 #define MAX_NETWORKS 100
-#define MAX_SSID_LENGTH 36
+#define MAX_SSID_LENGTH 36 // SSID can have up to 32 characters + null terminator + padding
 #define MAX_BSSID_LENGTH 20
+#define MAX_PASSWORD_LENGTH 68 // Password can have up to 64 characters + null terminator + padding
 #define IPV4_ADDRESS_LENGTH 16
 #define IPV6_ADDRESS_LENGTH 40
 typedef enum
@@ -42,9 +43,9 @@ typedef struct
 
 typedef struct
 {
-    char ssid[MAX_SSID_LENGTH];     // SSID to connect
-    char password[MAX_SSID_LENGTH]; // Password
-    __uint16_t auth_mode;           // auth mode
+    char ssid[MAX_SSID_LENGTH];         // SSID to connect
+    char password[MAX_PASSWORD_LENGTH]; // Password
+    __uint16_t auth_mode;               // auth mode
 } WifiNetworkAuthInfo;
 
 typedef struct

@@ -258,7 +258,7 @@ __uint16_t configuration()
         {
             // Handle memory allocation failure
             printf("Failed to allocate memory for data_array.\r\n");
-            return;
+            return 0; // 0 means back to main menu
         }
 
         for (size_t i = 0; i < configData->count; i++)
@@ -374,7 +374,7 @@ __uint16_t read_config()
 
     for (size_t i = 0; i < configData->count; i++)
     {
-        if (strcmp(configData->entries[i].key, "DELAY_ROM_EMULATION") == 0)
+        if (strcmp(configData->entries[i].key, PARAM_DELAY_ROM_EMULATION) == 0)
         {
             is_delay_option = strcmp(configData->entries[i].value, "true") == 0;
         }
@@ -396,7 +396,7 @@ __uint16_t toggle_delay_option(void)
 
     is_delay_option = !is_delay_option;
     ConfigEntry *entry = (ConfigEntry *)malloc(sizeof(ConfigEntry));
-    strncpy(entry->key, "DELAY_ROM_EMULATION", MAX_KEY_LENGTH);
+    strncpy(entry->key, PARAM_DELAY_ROM_EMULATION, MAX_KEY_LENGTH);
     strncpy(entry->value, is_delay_option ? "true" : "false", MAX_STRING_VALUE_LENGTH);
     entry->dataType = TYPE_BOOL;
 
@@ -409,4 +409,27 @@ __uint16_t toggle_delay_option(void)
     flush_kbd();
 
     return 0; // Do not reset computer after toggling delay option
+}
+
+OSHEADER *GetROMSysbase(void)
+{
+    OSHEADER *osret;
+    char *savesp = (Super(SUP_INQUIRE) ? NULL : Super(SUP_SET));
+    osret = (*_sysbase)->os_beg;
+    if (savesp)
+        Super(savesp);
+    return osret;
+}
+
+// Kbshift() is not a particularly fast call. If you are only interested in reading the
+// state a documented macro follows that replaces Kbshift() and is much faster. Call
+// the init_kb() function, as shown below, before using Kbstate()
+void init_kb()
+{
+    /* GetROMSysbase is defined in the BIOS Overview */
+    OSHEADER *os = GetROMSysbase();
+    if (os->os_version == 0x0100)
+        p_kbshift = (char *)0xe1b;
+    else
+        p_kbshift = (char *)os->p_kbshift;
 }

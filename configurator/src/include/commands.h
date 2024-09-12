@@ -27,5 +27,6 @@
 #define BOOT_RTC 23             // Boot the RTC emulator
 #define CLEAN_START 24          // Start the configurator when the app starts
 #define BOOT_GEMDRIVE 25        // Boot the GEMDRIVE emulator
+#define REBOOT 26               // Reboot the device
 
 #endif // COMMANDS_H_

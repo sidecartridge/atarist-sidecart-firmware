@@ -142,11 +142,13 @@ static __int8_t get_number_active_wait(CallbackFunction networkCallback, Callbac
                     {
                         menuItems[exit_option_index].description = "Exit to GEM";
                     }
-                    for (int i = 0; i < sizeof(menuItems) / sizeof(MenuItem); i++)
+                    size_t i = 0;
+                    for (i = 0; i < sizeof(menuItems) / sizeof(MenuItem); i++)
                     {
                         locate(MENU_ALIGN_X, MENU_ALIGN_Y + menuItems[i].line);
                         printf("%c. %s", menuItems[i].option, menuItems[i].description);
                     }
+                    printf("\r\n\n\n          Need help? Read the User Guide at https://docs.sidecartridge.com");
                 }
             }
             else
@@ -296,6 +298,7 @@ static int run()
     send_async_command(CLEAN_START, NULL, 0);
     printf("\r\033KReading the microSD. Be patient...");
 
+    init_kb();
     init_config();
     init_connection_status();
     init_storage();

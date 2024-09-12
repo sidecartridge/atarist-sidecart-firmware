@@ -3,7 +3,7 @@
 static void set_rtc_type(char *type)
 {
     ConfigEntry *entry = (ConfigEntry *)malloc(sizeof(ConfigEntry));
-    strncpy(entry->key, "RTC_TYPE", MAX_KEY_LENGTH);
+    strncpy(entry->key, PARAM_RTC_TYPE, MAX_KEY_LENGTH);
     strncpy(entry->value, type, MAX_STRING_VALUE_LENGTH);
     entry->dataType = TYPE_STRING;
     send_sync_command(PUT_CONFIG_STRING, entry, sizeof(ConfigEntry), RTC_WAIT_TIME, FALSE);
@@ -31,10 +31,10 @@ __uint16_t rtc_menu()
                 return 0;
             }
 #endif
-            ConfigEntry *ntp_server_host_entry = get_config_entry("RTC_NTP_SERVER_HOST");
-            ConfigEntry *ntp_server_port_entry = get_config_entry("RTC_NTP_SERVER_PORT");
-            ConfigEntry *rtc_type_entry = get_config_entry("RTC_TYPE");
-            ConfigEntry *rtc_utc_offset_entry = get_config_entry("RTC_UTC_OFFSET");
+            ConfigEntry *ntp_server_host_entry = get_config_entry(PARAM_RTC_NTP_SERVER_HOST);
+            ConfigEntry *ntp_server_port_entry = get_config_entry(PARAM_RTC_NTP_SERVER_PORT);
+            ConfigEntry *rtc_type_entry = get_config_entry(PARAM_RTC_TYPE);
+            ConfigEntry *rtc_utc_offset_entry = get_config_entry(PARAM_RTC_UTC_OFFSET);
 
             char *ntp_server_host = ntp_server_host_entry != NULL ? ntp_server_host_entry->value : "NOT FOUND";
             int ntp_server_port = ntp_server_port_entry != NULL ? atoi(ntp_server_port_entry->value) : 123;
@@ -99,7 +99,7 @@ __uint16_t rtc_menu()
                 }
 
                 ConfigEntry *entry = (ConfigEntry *)malloc(sizeof(ConfigEntry));
-                strncpy(entry->key, "RTC_UTC_OFFSET", MAX_KEY_LENGTH);
+                strncpy(entry->key, PARAM_RTC_UTC_OFFSET, MAX_KEY_LENGTH);
                 strncpy(entry->value, offset, MAX_STRING_VALUE_LENGTH);
                 entry->dataType = TYPE_STRING;
                 send_sync_command(PUT_CONFIG_STRING, entry, sizeof(ConfigEntry), RTC_WAIT_TIME, FALSE);
@@ -123,7 +123,7 @@ __uint16_t rtc_menu()
                 }
 
                 ConfigEntry *entry = (ConfigEntry *)malloc(sizeof(ConfigEntry));
-                strncpy(entry->key, "RTC_NTP_SERVER_HOST", MAX_KEY_LENGTH);
+                strncpy(entry->key, PARAM_RTC_NTP_SERVER_HOST, MAX_KEY_LENGTH);
                 strncpy(entry->value, host, MAX_STRING_VALUE_LENGTH);
                 entry->dataType = TYPE_STRING;
                 send_sync_command(PUT_CONFIG_STRING, entry, sizeof(ConfigEntry), RTC_WAIT_TIME, FALSE);
@@ -158,7 +158,7 @@ __uint16_t rtc_menu()
                 sprintf(port, "%d", portNumber);
 
                 ConfigEntry *entry = (ConfigEntry *)malloc(sizeof(ConfigEntry));
-                strncpy(entry->key, "RTC_NTP_SERVER_PORT", MAX_KEY_LENGTH);
+                strncpy(entry->key, PARAM_RTC_NTP_SERVER_PORT, MAX_KEY_LENGTH);
                 strncpy(entry->value, port, MAX_STRING_VALUE_LENGTH);
                 entry->dataType = TYPE_INT;
                 send_sync_command(PUT_CONFIG_INTEGER, entry, sizeof(ConfigEntry), RTC_WAIT_TIME, FALSE);

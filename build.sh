@@ -17,6 +17,9 @@ working_folder=$1
 build_type=$2
 
 ST_WORKING_FOLDER=$working_folder/configurator stcmd make $build_type
+
+ST_WORKING_FOLDER=$working_folder stcmd upx -vk -o ./configurator/dist/SIDECUPX.TOS ./configurator/dist/SIDECART.TOS
+
 ST_WORKING_FOLDER=$working_folder stcmd make $build_type
 
 filename_tos="./dist/SIDECART.TOS"

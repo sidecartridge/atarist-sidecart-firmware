@@ -83,14 +83,6 @@ __uint16_t harddisk_menu()
                 return 0; // 0 is go to menu
             }
 #endif
-            // Print the warning message to explain this feature is experimental
-            printf("\033KATTENTION: The hard disk emulation feature is currently in an experimental\r\n");
-            printf("phase. We strongly advise that you proceed with caution and at your own risk.\r\n");
-            printf("Before utilizing this feature, it is imperative to thoroughly back up any and\r\n");
-            printf("all data present on the microSD card being used for storage. If you decide to\r\n");
-            printf("explore this feature, please share any feedback or bugs on the project page.\r\n");
-            printf("\r\n");
-
             printf("\r\n");
             printf("MicroSD card folder:\t%s\r\n", hd_folders);
             printf("\r\n");

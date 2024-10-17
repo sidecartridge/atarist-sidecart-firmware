@@ -5,7 +5,8 @@
 
 static void set_floppy_config(__uint8_t boot_sector_enabled,
                               __uint8_t xbios_enabled,
-                              __uint8_t buffer_type)
+                              __uint8_t buffer_type,
+                              __uint8_t network_enabled)
 {
     ConfigEntry *entry = (ConfigEntry *)malloc(sizeof(ConfigEntry));
     strncpy(entry->key, PARAM_FLOPPY_BOOT_ENABLED, MAX_KEY_LENGTH);
@@ -25,6 +26,13 @@ static void set_floppy_config(__uint8_t boot_sector_enabled,
     strncpy(entry->key, PARAM_FLOPPY_BUFFER_TYPE, MAX_KEY_LENGTH);
     snprintf(entry->value, MAX_STRING_VALUE_LENGTH, buffer_type == 0 ? "0" : "1");
     entry->dataType = TYPE_INT;
+    send_sync_command(PUT_CONFIG_STRING, entry, sizeof(ConfigEntry), FLOPPYLOAD_WAIT_TIME, FALSE);
+    free(entry);
+
+    entry = (ConfigEntry *)malloc(sizeof(ConfigEntry));
+    strncpy(entry->key, PARAM_FLOPPY_NET_ENABLED, MAX_KEY_LENGTH);
+    strncpy(entry->value, network_enabled ? "true" : "false", MAX_STRING_VALUE_LENGTH);
+    entry->dataType = TYPE_BOOL;
     send_sync_command(PUT_CONFIG_STRING, entry, sizeof(ConfigEntry), FLOPPYLOAD_WAIT_TIME, FALSE);
     free(entry);
 }
@@ -145,10 +153,12 @@ __uint16_t floppy_menu()
     ConfigEntry *floppies_folder_entry = get_config_entry(PARAM_FLOPPIES_FOLDER);
     ConfigEntry *floppies_floppy_image_a_entry = get_config_entry(PARAM_FLOPPY_IMAGE_A);
     ConfigEntry *floppies_floppy_image_b_entry = get_config_entry(PARAM_FLOPPY_IMAGE_B);
+    ConfigEntry *floppy_net_enabled_entry = get_config_entry(PARAM_FLOPPY_NET_ENABLED);
 
     __uint8_t floppy_boot_enabled = floppy_boot_enabled_entry != NULL ? (floppy_boot_enabled_entry->value[0] == 't' || floppy_boot_enabled_entry->value[0] == 'T') : 1;     // Enabled by default
     __uint8_t floppy_buffer_type = floppy_buffer_type_entry != NULL ? atoi(floppy_buffer_type_entry->value) : 0;                                                            // _dskbuff by default
     __uint8_t floppy_xbios_enabled = floppy_xbios_enabled_entry != NULL ? (floppy_xbios_enabled_entry->value[0] == 't' || floppy_xbios_enabled_entry->value[0] == 'T') : 1; // Enabled by default
+    __uint8_t floppy_net_enabled = floppy_net_enabled_entry != NULL ? (floppy_net_enabled_entry->value[0] == 't' || floppy_net_enabled_entry->value[0] == 'T') : 0;         // Disabled by default
     char *floppies_folder = malloc(MAX_FOLDER_LENGTH);
     strcpy(floppies_folder, (floppies_folder_entry != NULL ? floppies_folder_entry->value : "/floppies"));
     char *floppy_image_a = malloc(MAX_FOLDER_LENGTH);
@@ -185,6 +195,7 @@ __uint16_t floppy_menu()
             printf("[E]xecute boot sector:\t%s\r\n", floppy_boot_enabled ? "YES" : "NO");
             printf("[X]BIOS interception:\t%s\r\n", floppy_xbios_enabled ? "YES" : "NO");
             printf("Temp [M]emory type:\t%s\r\n", floppy_buffer_type == 0 ? "_dskbuf" : "heap");
+            printf("[W]eb manager (EXPERIMENTAL):\t%s\r\n", floppy_net_enabled ? "YES" : "NO");
             printf("\r\n");
             printf("Options:\r\n\n");
 
@@ -271,7 +282,7 @@ __uint16_t floppy_menu()
             {
                 // Toggle floppy boot enabled
                 floppy_boot_enabled = !floppy_boot_enabled & 0x01;
-                set_floppy_config(floppy_boot_enabled, floppy_xbios_enabled, floppy_buffer_type);
+                set_floppy_config(floppy_boot_enabled, floppy_xbios_enabled, floppy_buffer_type, floppy_net_enabled);
                 display = TRUE;
                 config_changed = TRUE;
             }
@@ -280,7 +291,7 @@ __uint16_t floppy_menu()
             {
                 // Toggle floppy xbios enabled
                 floppy_xbios_enabled = !floppy_xbios_enabled & 0x01;
-                set_floppy_config(floppy_boot_enabled, floppy_xbios_enabled, floppy_buffer_type);
+                set_floppy_config(floppy_boot_enabled, floppy_xbios_enabled, floppy_buffer_type, floppy_net_enabled);
                 display = TRUE;
                 config_changed = TRUE;
             }
@@ -289,7 +300,16 @@ __uint16_t floppy_menu()
             {
                 // Toggle floppy buffer type
                 floppy_buffer_type = !floppy_buffer_type & 0x01;
-                set_floppy_config(floppy_boot_enabled, floppy_xbios_enabled, floppy_buffer_type);
+                set_floppy_config(floppy_boot_enabled, floppy_xbios_enabled, floppy_buffer_type, floppy_net_enabled);
+                display = TRUE;
+                config_changed = TRUE;
+            }
+            // Check if the input is 'W' or 'w'
+            else if ((key == 'W') || (key == 'w'))
+            {
+                // Toggle network enabled
+                floppy_net_enabled = !floppy_net_enabled & 0x01;
+                set_floppy_config(floppy_boot_enabled, floppy_xbios_enabled, floppy_buffer_type, floppy_net_enabled);
                 display = TRUE;
                 config_changed = TRUE;
             }

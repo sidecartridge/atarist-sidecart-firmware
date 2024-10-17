@@ -7,7 +7,8 @@ static void set_harddisk_config(
     char hd_drive,
     __uint8_t hd_buffer_type,
     __uint8_t hd_rtc,
-    __uint8_t hd_timeout)
+    __uint8_t hd_timeout,
+    __uint8_t hd_fakefloppy)
 {
     ConfigEntry *entry = (ConfigEntry *)malloc(sizeof(ConfigEntry));
     strncpy(entry->key, PARAM_GEMDRIVE_DRIVE, MAX_KEY_LENGTH);
@@ -36,6 +37,13 @@ static void set_harddisk_config(
     entry->dataType = TYPE_INT;
     send_sync_command(PUT_CONFIG_STRING, entry, sizeof(ConfigEntry), FLOPPYLOAD_WAIT_TIME, FALSE);
     free(entry);
+
+    entry = (ConfigEntry *)malloc(sizeof(ConfigEntry));
+    strncpy(entry->key, PARAM_GEMDRIVE_FAKEFLOPPY, MAX_KEY_LENGTH);
+    snprintf(entry->value, MAX_STRING_VALUE_LENGTH, hd_fakefloppy ? "true" : "false");
+    entry->dataType = TYPE_BOOL;
+    send_sync_command(PUT_CONFIG_STRING, entry, sizeof(ConfigEntry), FLOPPYLOAD_WAIT_TIME, FALSE);
+    free(entry);
 }
 
 __uint16_t harddisk_menu()
@@ -47,11 +55,13 @@ __uint16_t harddisk_menu()
     ConfigEntry *hd_rtc_entry = get_config_entry(PARAM_GEMDRIVE_RTC);
     ConfigEntry *hd_folders_entry = get_config_entry(PARAM_GEMDRIVE_FOLDERS);
     ConfigEntry *hd_timeout_entry = get_config_entry(PARAM_GEMDRIVE_TIMEOUT_SEC);
+    ConfigEntry *hd_fakefloppy_entry = get_config_entry(PARAM_GEMDRIVE_FAKEFLOPPY);
 
     char hd_drive = hd_drive_entry != NULL ? (hd_drive_entry->value[0] >= 'a' && hd_drive_entry->value[0] <= 'z' ? hd_drive_entry->value[0] - 32 : hd_drive_entry->value[0]) : 'C'; // C by default
     __uint8_t hd_buffer_type = hd_buffer_type_entry != NULL ? atoi(hd_buffer_type_entry->value) : 0;                                                                                // _dskbuff by default
     __uint8_t hd_rtc = hd_rtc_entry != NULL ? (hd_rtc_entry->value[0] == 't' || hd_rtc_entry->value[0] == 'T') : 1;                                                                 // Enabled by default
-    __uint8_t hd_timeout = hd_timeout_entry != NULL ? atoi(hd_timeout_entry->value) : 45;                                                                                           // 45 seconds by default
+    __uint8_t hd_timeout = hd_timeout_entry != NULL ? atoi(hd_timeout_entry->value) : 45;
+    __uint8_t hd_fakefloppy = hd_fakefloppy_entry != NULL ? (hd_fakefloppy_entry->value[0] == 't' || hd_fakefloppy_entry->value[0] == 'T') : 1; // Enabled by default
     char *hd_folders = malloc(MAX_FOLDER_LENGTH);
     strcpy(hd_folders, (hd_folders_entry != NULL ? hd_folders_entry->value : "/hd"));
 
@@ -87,6 +97,7 @@ __uint16_t harddisk_menu()
             printf("[D]rive:\t\t%c:\\ \r\n", hd_drive);
             printf("Temp [M]emory type:\t%s\r\n", hd_buffer_type == 0 ? "_dskbuf" : "heap");
             printf("[R]TC enabled:\t\t%s\r\n", hd_rtc ? "YES" : "NO");
+            printf("[F]ake Floppy:\t\t%s\r\n", hd_fakefloppy ? "YES" : "NO");
             printf("[T]imeout (seconds):\t%d\r\n", hd_timeout);
             printf("\r\n");
             printf("Options:\r\n\n");
@@ -128,7 +139,7 @@ __uint16_t harddisk_menu()
                 {
                     hd_drive = 'C';
                 }
-                set_harddisk_config(hd_drive, hd_buffer_type, hd_rtc, hd_timeout);
+                set_harddisk_config(hd_drive, hd_buffer_type, hd_rtc, hd_timeout, hd_fakefloppy);
                 config_changed = TRUE;
                 display = TRUE;
             }
@@ -137,7 +148,7 @@ __uint16_t harddisk_menu()
             {
                 // Toggle floppy buffer type
                 hd_buffer_type = !hd_buffer_type & 0x01;
-                set_harddisk_config(hd_drive, hd_buffer_type, hd_rtc, hd_timeout);
+                set_harddisk_config(hd_drive, hd_buffer_type, hd_rtc, hd_timeout, hd_fakefloppy);
                 display = TRUE;
                 config_changed = TRUE;
             }
@@ -145,7 +156,7 @@ __uint16_t harddisk_menu()
             {
                 // Toggle RTC
                 hd_rtc = !hd_rtc & 0x01;
-                set_harddisk_config(hd_drive, hd_buffer_type, hd_rtc, hd_timeout);
+                set_harddisk_config(hd_drive, hd_buffer_type, hd_rtc, hd_timeout, hd_fakefloppy);
                 display = TRUE;
                 config_changed = TRUE;
             }
@@ -158,9 +169,17 @@ __uint16_t harddisk_menu()
                 {
                     hd_timeout = 45;
                 }
-                set_harddisk_config(hd_drive, hd_buffer_type, hd_rtc, hd_timeout);
+                set_harddisk_config(hd_drive, hd_buffer_type, hd_rtc, hd_timeout, hd_fakefloppy);
                 config_changed = TRUE;
                 display = TRUE;
+            }
+            else if ((key == 'F') || (key == 'f'))
+            {
+                // Toggle Fake floppy
+                hd_fakefloppy = !hd_fakefloppy & 0x01;
+                set_harddisk_config(hd_drive, hd_buffer_type, hd_rtc, hd_timeout, hd_fakefloppy);
+                display = TRUE;
+                config_changed = TRUE;
             }
             // Check if the input is 'S' or 's' or 'W' or 'w'
             else if ((key == 'S') || (key == 's'))

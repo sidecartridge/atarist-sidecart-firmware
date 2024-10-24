@@ -4,6 +4,7 @@
 #include <sys/types.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdint.h>
 
 #include "helper.h"
 #include "screen.h"
@@ -13,6 +14,7 @@
 #define MAX_SSID_LENGTH 36 // SSID can have up to 32 characters + null terminator + padding
 #define MAX_BSSID_LENGTH 20
 #define MAX_PASSWORD_LENGTH 68 // Password can have up to 64 characters + null terminator + padding
+#define MAX_RSSID_LENGTH 10
 #define IPV4_ADDRESS_LENGTH 16
 #define IPV6_ADDRESS_LENGTH 40
 typedef enum
@@ -39,6 +41,7 @@ typedef struct
     char ssid[MAX_SSID_LENGTH];   // SSID can have up to 32 characters + null terminator
     char bssid[MAX_BSSID_LENGTH]; // BSSID in the format xx:xx:xx:xx:xx:xx + null terminator
     __uint16_t auth_mode;         // MSB is not used, the data is in the LSB
+    __int16_t rssi;               // Received Signal Strength Indicator
 } WifiNetworkInfo;
 
 typedef struct
@@ -74,7 +77,7 @@ typedef struct connection_data
     __uint16_t network_status_poll_interval;        // Network status poll interval in seconds
     __uint16_t network_status;                      // Network connection status
     __uint16_t file_downloading_timeout;            // File downloading timeout in seconds
-    __uint16_t padding;                             // Padding to align to 4 bytes
+    __int16_t rssi;                                 // Received Signal Strength Indicator
 } ConnectionData;
 
 typedef struct

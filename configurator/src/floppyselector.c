@@ -192,10 +192,10 @@ __uint16_t floppy_menu()
             printf("Floppy A:\t\t%s\r\n", strlen(floppy_image_a) > 0 ? floppy_image_a : "<EMPTY>");
             printf("Floppy B:\t\t%s\r\n", strlen(floppy_image_b) > 0 ? floppy_image_b : "<EMPTY>");
             printf("\r\n");
-            printf("[E]xecute boot sector:\t%s\r\n", floppy_boot_enabled ? "YES" : "NO");
+            printf("[E]xecute boot sector:\t%s\tDisable if a boot sector virus is detected\r\n", floppy_boot_enabled ? "YES" : "NO");
             printf("[X]BIOS interception:\t%s\r\n", floppy_xbios_enabled ? "YES" : "NO");
             printf("Temp [M]emory type:\t%s\r\n", floppy_buffer_type == 0 ? "_dskbuf" : "heap");
-            printf("[W]eb manager (EXPERIMENTAL):\t%s\r\n", floppy_net_enabled ? "YES" : "NO");
+            printf("[W]eb manager:\t\t%s\tEXPERIMENTAL (Needs WiFi)\r\n", floppy_net_enabled ? "YES" : "NO");
             printf("\r\n");
             printf("Options:\r\n\n");
 

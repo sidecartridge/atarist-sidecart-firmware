@@ -88,9 +88,9 @@ __uint16_t harddisk_menu()
             printf("\r\n");
             printf("[D]rive:\t\t%c:\\ \r\n", hd_drive);
             printf("Temp [M]emory type:\t%s\r\n", hd_buffer_type == 0 ? "_dskbuf" : "heap");
-            printf("[R]TC enabled:\t\t%s\r\n", hd_rtc ? "YES" : "NO");
-            printf("[F]ake Floppy:\t\t%s\r\n", hd_fakefloppy ? "YES" : "NO");
-            printf("[T]imeout (seconds):\t%d\r\n", hd_timeout);
+            printf("[R]TC enabled:\t\t%s\tNeeds WiFi to access a NTP server\r\n", hd_rtc ? "YES" : "NO");
+            printf("[F]ake Floppy:\t\t%s\tEnable AUTO folder execution without floppies\r\n", hd_fakefloppy ? "YES" : "NO");
+            printf("Network [T]imeout:\t%dsec\r\n", hd_timeout);
             printf("\r\n");
             printf("Options:\r\n\n");
 

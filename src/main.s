@@ -209,7 +209,16 @@ run_configurator_avoid_p_pointer:
 	jmp (a1)
 
 welcome:
-	dc.b "Press LEFT SHIFT to autoboot the",13,10,"SidecarT Configurator.",13,10
+	dc.b "SidecarTridge Multi-device "
+	dc.b    "v"
+	dc.b    VERSION_MAJOR
+	dc.b    "."
+	dc.b    VERSION_MINOR
+	dc.b    "."
+	dc.b    VERSION_PATCH
+	dc.b    13,10,10
+
+	dc.b "Press LEFT SHIFT to autoboot the",13,10,"Configurator app.",13,10
 	dc.b "Press RIGHT SHIFT to skip and boot to",13,10,"GEM now.",13,10,0
 
 to_gem:

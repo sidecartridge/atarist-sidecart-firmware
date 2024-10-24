@@ -1,5 +1,9 @@
 # Version from file
 VERSION := $(shell cat version.txt)
+VERSION_MAJOR := $(shell echo $(VERSION) | awk -F'.' '{print $$1}')
+VERSION_MINOR := $(shell echo $(VERSION) | awk -F'.' '{print $$2}')
+VERSION_PATCH := $(shell echo $(VERSION) | awk -F'.' '{print $$3}')
+
 
 # GEMDOS Date: YYYYMMDD format
 YEAR = $(shell date +'%Y')
@@ -34,7 +38,7 @@ BIN = BOOT.BIN
 # _DEBUG: 1 to enable debug, 0 to disable them
 # To disable debug, make target DEBUG_MODE=0
 DEBUG_MODE = 1
-VASMFLAGS=-Faout -quiet -x -m68000 -spaces -showopt -devpac -D_DEBUG=$(DEBUG_MODE) -DGEMDOS_DATE=$(GEMDOS_DATE_FORMATTED) -DGEMDOS_TIME=$(GEMDOS_TIME_FORMATTED)
+VASMFLAGS=-Faout -quiet -x -m68000 -spaces -showopt -devpac -D_DEBUG=$(DEBUG_MODE) -DGEMDOS_DATE=$(GEMDOS_DATE_FORMATTED) -DGEMDOS_TIME=$(GEMDOS_TIME_FORMATTED) -DVERSION_MAJOR=\"$(VERSION_MAJOR)\" -DVERSION_MINOR=\"$(VERSION_MINOR)\" -DVERSION_PATCH=\"$(VERSION_PATCH)\"
 VASM = vasm 
 VLINK =  vlink
 

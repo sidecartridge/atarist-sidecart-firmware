@@ -88,6 +88,7 @@ static __int8_t get_number_active_wait(CallbackFunction networkCallback, Callbac
 {
     __uint16_t callback_interval = 0;
     __uint16_t first_time = TRUE;
+    __uint16_t blink_counter = 0;
     flush_kbd();
     while (1)
     {
@@ -153,7 +154,7 @@ static __int8_t get_number_active_wait(CallbackFunction networkCallback, Callbac
             }
             else
             {
-                blink_if_new_version_available((callback_interval / 50) % 2);
+                blink_if_new_version_available(blink_counter++ % 50 < 25 ? TRUE : FALSE);
                 Vsync(); // Wait for VBL interrupt
                 callback_interval--;
             }

@@ -14,7 +14,7 @@ __uint16_t get_storage_status(__uint16_t show_bar)
     int err = send_sync_command(GET_SD_DATA, NULL, 0, STORAGE_WAIT_TIME, FALSE);
     if (err != 0)
     {
-        snprintf(buffer, STATUS_STRING_BUFFER_SIZE, "Cannot read microSD status. Is the SidecarT connected?");
+        snprintf(buffer, STATUS_STRING_BUFFER_SIZE, "Cannot read microSD status. Is the device connected?");
     }
     else
     {
@@ -180,7 +180,7 @@ static __uint16_t check_folder(__uint16_t service)
     {
         if (sd_card_data->floppies_folder_status != FLOPPIES_FOLDER_OK)
         {
-            printf("The folder '%s' was not found in the microSD card.\r\nPlease create one, SidecarT will download the floppy images inside.\r\n", floppies_folder_value);
+            printf("The folder '%s' was not found in the microSD card.\r\nPlease create one, device will download the floppy images inside.\r\n", floppies_folder_value);
             status = 4;
         }
     }

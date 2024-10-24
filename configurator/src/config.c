@@ -366,7 +366,7 @@ __uint16_t read_config()
 
     if (err != 0)
     {
-        printf("Cannot read configuration. Is the SidecarT connected?\r\nTry to reset the SidecarT and try again.\r\n");
+        printf("Cannot read configuration. Is the device connected?\r\nTry to reset the device and try again.\r\n");
         return 1;
     }
 

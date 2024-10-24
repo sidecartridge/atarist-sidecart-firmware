@@ -1,7 +1,6 @@
 #include "include/network.h"
 
 static __uint16_t poll_latest_release;
-static __uint16_t latest_release_available;
 
 static ConnectionStatus connection_status = DISCONNECTED;
 static ConnectionData *connection_data = NULL;
@@ -196,18 +195,21 @@ static void check_latest_release()
     // Check if the latest release is available
     if (connection_data != NULL)
     {
-        if (connection_data->network_status == CONNECTED_WIFI_IP)
+        ConfigEntry *entry = get_config_entry(PARAM_WIFI_DHCP);
+        int is_dhcp_enabled = entry != NULL && (entry->value[0] == 't' || entry->value[0] == 'T');
+        if ((connection_data->network_status == CONNECTED_WIFI_IP) || (!is_dhcp_enabled && (connection_data->network_status == CONNECTED_WIFI_NO_IP)))
         {
             if (poll_latest_release)
             {
                 poll_latest_release = FALSE;
-                int err = send_sync_command(GET_LATEST_RELEASE, NULL, 0, NETWORK_WAIT_TIME, FALSE);
-                if (err == 0)
-                {
-                    char *latest_release = (char *)(LATEST_RELEASE_START_ADDRESS + sizeof(__uint32_t));
-                    // The latest release is the same as the current version or not?
-                    latest_release_available = strlen(latest_release) > 0;
-                }
+                send_async_command(GET_LATEST_RELEASE, NULL, 0);
+                // int err = send_sync_command(GET_LATEST_RELEASE, NULL, 0, NETWORK_WAIT_TIME, FALSE);
+                // if (err == 0)
+                // {
+                //     char *latest_release = (char *)(LATEST_RELEASE_START_ADDRESS + sizeof(__uint32_t));
+                //     // The latest release is the same as the current version or not?
+                //     latest_release_available = strlen(latest_release) > 0;
+                // }
             }
         }
     }
@@ -218,7 +220,6 @@ void init_connection_status()
     connection_data = malloc(sizeof(ConnectionData));
     memset(connection_data, 0, sizeof(ConnectionData));
     poll_latest_release = TRUE;
-    latest_release_available = FALSE;
 }
 
 __uint16_t get_connection_status(__uint16_t show_bar)
@@ -228,7 +229,7 @@ __uint16_t get_connection_status(__uint16_t show_bar)
 
     if (err != 0)
     {
-        snprintf(buffer, STATUS_STRING_BUFFER_SIZE, "Cannot read network status. Is the SidecarT connected?");
+        snprintf(buffer, STATUS_STRING_BUFFER_SIZE, "Cannot read network status. Is the device connected?");
     }
     else
     {
@@ -269,7 +270,8 @@ __uint16_t get_connection_status(__uint16_t show_bar)
 
 __uint16_t get_latest_release()
 {
-    return latest_release_available;
+    char *latest_release = (char *)(LATEST_RELEASE_START_ADDRESS + sizeof(__uint32_t));
+    return strlen(latest_release) > 0;
 }
 
 __uint16_t check_network_connection()
@@ -508,7 +510,7 @@ __uint16_t wifi_menu()
                 if ((key == 'R') || (key == 'r'))
                 {
                     send_async_command(DISCONNECT_NETWORK, NULL, 0);
-                    please_wait("\r\033KInitializing Wifi in the SidecarT...", 10);
+                    please_wait("\r\033KInitializing Wifi in the device...", 10);
                     network_selector();
                     return 0; // Return to menu
                 }

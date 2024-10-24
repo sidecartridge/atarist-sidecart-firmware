@@ -75,18 +75,48 @@ static CountryCodeMapping country_codes[] = {
     {"GB", "United Kingdom"},
     {"US", "United States"}};
 
-static void read_networks_from_memory(char *ssids, WifiNetworkInfo networks[], __uint16_t total_size)
+static void read_networks_from_memory(char *ssids, const WifiNetworkInfo networks[], uint16_t total_size)
 {
     char *current_ssid_position = ssids;
 
-    for (__uint16_t i = 0; i < total_size; i++)
+    for (uint16_t i = 0; i < total_size; i++)
     {
+        char line[80]; // 79 characters + null terminator
+
+        // Initialize the line buffer with spaces
+        memset(line, ' ', 80);
+        line[79] = '\0'; // Null-terminate the line
+
+        // Copy the SSID into positions 0 to 39 (40 characters)
         size_t ssid_len = strlen(networks[i].ssid);
-        memcpy(current_ssid_position, networks[i].ssid, ssid_len);
-        current_ssid_position[ssid_len] = '\0'; // Null terminate the copied string
-        current_ssid_position += ssid_len + 1;  // Move to the next position, taking into account the null terminator
+        if (ssid_len > 40)
+            ssid_len = 40; // Truncate if necessary
+        memcpy(line, networks[i].ssid, ssid_len);
+
+        // Copy the BSSID into positions 40 to 69 (30 characters)
+        size_t bssid_len = strlen(networks[i].bssid);
+        if (bssid_len > 30)
+            bssid_len = 30; // Truncate if necessary
+        memcpy(line + 40, networks[i].bssid, bssid_len);
+
+        // Format the RSSI value as a string
+        char rssi_str[8]; // Enough to hold up to 8 characters
+        int rssi_str_len = snprintf(rssi_str, sizeof(rssi_str), "%ddb", networks[i].rssi);
+        if (rssi_str_len < 0)
+            rssi_str_len = 0; // Handle snprintf error
+        if (rssi_str_len > 8)
+            rssi_str_len = 8; // Truncate if necessary
+
+        // Copy the RSSI string into positions 70 to 79
+        memcpy(line + 70, rssi_str, rssi_str_len);
+
+        // Copy the 80-character line into the ssids buffer
+        memcpy(current_ssid_position, line, 80);
+        current_ssid_position += 80;
     }
-    current_ssid_position[0] = '\0'; // Null terminate the list of ssids
+
+    // Null-terminate the entire ssids buffer
+    *current_ssid_position = '\0';
 }
 
 static __uint16_t get_network_count(char *file_array)
@@ -208,9 +238,16 @@ __uint16_t get_connection_status(__uint16_t show_bar)
         }
         memcpy(connection_data, (ConnectionData *)(CONNECTION_STATUS_START_ADDRESS + sizeof(__uint32_t)), sizeof(ConnectionData));
         char *status_str = get_status_str(connection_data->network_status);
-        snprintf(buffer, STATUS_STRING_BUFFER_SIZE, "IP: %s | SSID: %s | Status: %s",
-                 connection_data->ipv4_address, connection_data->ssid,
-                 status_str);
+        if (connection_data->rssi < 0)
+        {
+            snprintf(buffer, STATUS_STRING_BUFFER_SIZE, "IP: %s | SSID: %s (%ddb)| Status: %s",
+                     connection_data->ipv4_address, connection_data->ssid, connection_data->rssi, status_str);
+        }
+        else
+        {
+            snprintf(buffer, STATUS_STRING_BUFFER_SIZE, "IP: %s | SSID: %s | Status: %s",
+                     connection_data->ipv4_address, connection_data->ssid, status_str);
+        }
     }
 
     if (show_bar)
@@ -269,7 +306,7 @@ __uint16_t network_selector()
 #endif
 
     WifiScanData *wifiScanDataBuff = (WifiScanData *)network_list_mem;
-    char *network_array = malloc(MAX_SSID_LENGTH * wifiScanDataBuff->count + 1);
+    char *network_array = malloc(((MAX_SSID_LENGTH + MAX_RSSID_LENGTH) * wifiScanDataBuff->count) + 1);
     read_networks_from_memory(network_array, wifiScanDataBuff->networks, wifiScanDataBuff->count);
 
     if (!network_array)

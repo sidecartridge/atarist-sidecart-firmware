@@ -203,13 +203,6 @@ static void check_latest_release()
             {
                 poll_latest_release = FALSE;
                 send_async_command(GET_LATEST_RELEASE, NULL, 0);
-                // int err = send_sync_command(GET_LATEST_RELEASE, NULL, 0, NETWORK_WAIT_TIME, FALSE);
-                // if (err == 0)
-                // {
-                //     char *latest_release = (char *)(LATEST_RELEASE_START_ADDRESS + sizeof(__uint32_t));
-                //     // The latest release is the same as the current version or not?
-                //     latest_release_available = strlen(latest_release) > 0;
-                // }
             }
         }
     }
@@ -296,7 +289,25 @@ __uint16_t network_selector()
     send_sync_command(LAUNCH_SCAN_NETWORKS, NULL, (__uint16_t)0, NETWORK_WAIT_TIME, TRUE);
 
     printf("\r\033KRetrieving networks...");
-    send_sync_command(GET_SCANNED_NETWORKS, NULL, (__uint16_t)0, NETWORK_WAIT_TIME, TRUE);
+
+
+    uint16_t retries = COMMAND_NUM_RETRIES;
+    int err = TRUE;
+    while (retries--)
+    {
+        err = send_sync_command(GET_SCANNED_NETWORKS, NULL, (__uint16_t)0, NETWORK_WAIT_TIME, TRUE);
+        if (!err)
+        {
+            break;
+        }
+        sleep_seconds(1, TRUE);
+    }
+    if (err)
+    {
+        press_key("\r\n\033KError querying networks. Press a key to continue. ");
+        // No connection. Back to main menu
+        return 0;
+    }
 
     printf("\r\n");
 
@@ -377,7 +388,23 @@ __uint16_t roms_from_network_selector()
     __uint16_t *network_file_list_mem = (__uint16_t *)(NETWORK_FILE_LIST_START_ADDRESS + sizeof(__uint32_t));
 
     printf("Getting ROMs list...");
-    send_sync_command(GET_ROMS_JSON_FILE, NULL, (__uint16_t)0, NETWORK_WAIT_TIME, TRUE);
+    uint16_t retries = COMMAND_NUM_RETRIES;
+    int err = TRUE;
+    while (retries--)
+    {
+        err = send_sync_command(GET_ROMS_JSON_FILE, NULL, (__uint16_t)0, NETWORK_WAIT_TIME, TRUE);
+        if (!err)
+        {
+            break;
+        }
+        sleep_seconds(1, TRUE);
+    }
+    if (err)
+    {
+        press_key("\r\n\033KError querying database. Press a key to continue. ");
+        // No connection. Back to main menu
+        return 0;
+    }
 
     printf("\r\n");
 

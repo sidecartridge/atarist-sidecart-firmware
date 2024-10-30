@@ -64,6 +64,7 @@ static __uint32_t random_number = 0x0;
 #define RTC_WAIT_TIME 2
 #define STORAGE_WAIT_TIME 2
 #define ELEMENTS_PER_PAGE 10
+#define COMMAND_NUM_RETRIES 1
 #else
 #define ROM4_MEMORY_START 0xFA0000
 #define ROM3_MEMORY_START 0xFB0000
@@ -84,13 +85,14 @@ static __uint32_t random_number = 0x0;
 #define ROMS_JSON_WAIT_TIME 10
 #define ROMSLOAD_WAIT_TIME 40
 #define ROMS_LOAD_WAIT_TIME_MIN 10
-#define FLOPPYDB_WAIT_TIME 15
+#define FLOPPYDB_WAIT_TIME 10
 #define FLOPPYLOAD_WAIT_TIME 40
 #define FLOPPYLIST_WAIT_TIME 10
 #define CONFIG_WAIT_TIME 30
 #define RTC_WAIT_TIME 10
 #define STORAGE_WAIT_TIME 10
 #define ELEMENTS_PER_PAGE 17
+#define COMMAND_NUM_RETRIES 3
 #endif
 
 #define RANDOM_NUMBER_SIZE 4  // 4 bytes

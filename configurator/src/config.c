@@ -239,7 +239,23 @@ __uint16_t configuration()
     printf("Loading configuration...");
 
 #ifndef _DEBUG
-    send_sync_command(GET_CONFIG, NULL, 0, CONFIG_WAIT_TIME, TRUE);
+    __uint16_t retries = COMMAND_NUM_RETRIES;
+    int err = TRUE;
+    while (retries--)
+    {
+        err = send_sync_command(GET_CONFIG, NULL, 0, CONFIG_WAIT_TIME, TRUE);
+        if (!err)
+        {
+            break;
+        }
+        sleep_seconds(1, TRUE);
+    }
+    if (err)
+    {
+        press_key("\r\n\033KError querying configuration. Press a key to continue. ");
+        // No connection. Back to main menu
+        return 0;
+    }
 
     load_all_entries();
 #else
@@ -362,8 +378,17 @@ __uint16_t read_config()
 {
 
 #ifndef _DEBUG
-    int err = send_sync_command(GET_CONFIG, NULL, 0, CONFIG_WAIT_TIME, FALSE);
-
+    __uint16_t retries = COMMAND_NUM_RETRIES;
+    int err = TRUE;
+    while (retries--)
+    {
+        err = send_sync_command(GET_CONFIG, NULL, 0, CONFIG_WAIT_TIME, FALSE);
+        if (!err)
+        {
+            break;
+        }
+        sleep_seconds(1, TRUE);
+    }
     if (err != 0)
     {
         printf("Cannot read configuration. Is the device connected?\r\nTry to reset the device and try again.\r\n");

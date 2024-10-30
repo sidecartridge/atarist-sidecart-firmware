@@ -95,7 +95,24 @@ __uint16_t floppy_db()
                 }
                 printf("\033p%c\033q\r", key);
                 __uint16_t key16 = ((__uint16_t)key) & 0xFF;
-                send_sync_command(QUERY_FLOPPY_DB, &key16, 2, FLOPPYDB_WAIT_TIME, FALSE);
+                uint16_t retries = COMMAND_NUM_RETRIES;
+                int err = TRUE;
+                while (retries--)
+                {
+                    err = send_sync_command(QUERY_FLOPPY_DB, &key16, 2, FLOPPYDB_WAIT_TIME, FALSE);
+                    if (!err)
+                    {
+                        break;
+                    }
+                    sleep_seconds(1, TRUE);
+                }
+
+                if (err)
+                {
+                    press_key("\r\n\033KError querying the database. Press a key to continue. ");
+                    // No network connection. Back to main menu
+                    return 0;
+                }
 
                 int num_files = -1;
                 __uint32_t db_file_list_mem = (__uint32_t)DB_FILES_LIST_START_ADDRESS;

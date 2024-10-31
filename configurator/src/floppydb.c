@@ -99,7 +99,7 @@ __uint16_t floppy_db()
                 int err = TRUE;
                 while (retries--)
                 {
-                    err = send_sync_command(QUERY_FLOPPY_DB, &key16, 2, FLOPPYDB_WAIT_TIME, FALSE);
+                    err = send_sync_command(QUERY_FLOPPY_DB, &key16, 2, FLOPPYDB_WAIT_TIME, TRUE);
                     if (!err)
                     {
                         break;
@@ -149,8 +149,7 @@ __uint16_t floppy_db()
                         {
                             printf("\r\033KFloppy image file loaded. ");
                             __uint16_t err = read_config();
-                            floppy_menu();
-                            return 1; // different than zero is OK
+                            return floppy_menu();   // Return the floppy menu action
                         }
                         else
                         {

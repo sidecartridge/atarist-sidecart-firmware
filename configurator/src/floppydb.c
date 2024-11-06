@@ -20,9 +20,9 @@ __uint16_t floppy_db()
     void print_alphanum_bar()
     {
         locate(0, alphanum_bar_y_pos - 2);
-        printf("    Press A..Z and 0..9 to filter the database:");
+        printf("    Press A-Z or 0-9 to filter the database, '_' to show new apps and programs:");
         locate(0, alphanum_bar_y_pos);
-        printf("    A B C D E F G H I J K L M N O P Q R S T U V W X Y Z 0 1 2 3 4 5 6 7 8 9");
+        printf("    _ A B C D E F G H I J K L M N O P Q R S T U V W X Y Z 0 1 2 3 4 5 6 7 8 9");
         erase_table(alphanum_bar_y_pos + 1, 18);
         locate(0, 22);
         printf("Press [ESC] to return to main menu.");
@@ -45,10 +45,12 @@ __uint16_t floppy_db()
 
     print_alphanum_bar();
     int padding = 2;
-    char nav_arrow_keys[36] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    int alpha_padding = padding + 1;
+    int num_padding = 26 + alpha_padding;
+    char nav_arrow_keys[37] = "_ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     __uint16_t nav_arrow_keys_index = 0;
     __uint16_t first_time = TRUE;
-    char key = 'A';
+    char key = '_';
     long fullkey = 0;
     while (1)
     {
@@ -74,20 +76,28 @@ __uint16_t floppy_db()
             {
                 key -= 32;
             }
-            if (((key >= 65) && (key <= 90)) || ((key >= 48) && (key <= 57)))
+            if (((key >= 65) && (key <= 90)) || ((key >= 48) && (key <= 57)) || (key == '_'))
             {
                 locate(0, alphanum_bar_y_pos);
                 if ((key >= 65) && (key <= 90))
                 {
-                    for (__uint16_t i = 0; i < padding + (key - 65); i++)
+                    for (__uint16_t i = 0; i < alpha_padding + (key - 65); i++)
                     {
                         printf("\033C\033C");
                     }
                     nav_arrow_keys_index = key - 65;
                 }
+                else if (key == '_')
+                {
+                    for (__uint16_t i = 0; i < padding; i++)
+                    {
+                        printf("\033C\033C");
+                    }
+                    nav_arrow_keys_index = 0;
+                }
                 else
                 {
-                    for (__uint16_t i = 0; i < padding + 26 + (key - 48); i++)
+                    for (__uint16_t i = 0; i < num_padding + (key - 48); i++)
                     {
                         printf("\033C\033C");
                     }

@@ -15,6 +15,7 @@ static void set_rtc_type(char *type)
 __uint16_t rtc_menu()
 {
     __uint8_t display = TRUE;
+    __uint8_t rtc_y2k_patch_enabled = 0;
     while (TRUE)
     {
         if (display)
@@ -35,15 +36,18 @@ __uint16_t rtc_menu()
             ConfigEntry *ntp_server_port_entry = get_config_entry(PARAM_RTC_NTP_SERVER_PORT);
             ConfigEntry *rtc_type_entry = get_config_entry(PARAM_RTC_TYPE);
             ConfigEntry *rtc_utc_offset_entry = get_config_entry(PARAM_RTC_UTC_OFFSET);
+            ConfigEntry *rtc_y2k_patch_entry = get_config_entry(PARAM_RTC_Y2K_PATCH);
 
             char *ntp_server_host = ntp_server_host_entry != NULL ? ntp_server_host_entry->value : "NOT FOUND";
             int ntp_server_port = ntp_server_port_entry != NULL ? atoi(ntp_server_port_entry->value) : 123;
             char *rtc_type = rtc_type_entry != NULL ? rtc_type_entry->value : "NOT FOUND";
             char *rtc_utc_offset = rtc_utc_offset_entry != NULL ? rtc_utc_offset_entry->value : "+0";
+            rtc_y2k_patch_enabled = rtc_y2k_patch_entry != NULL ? (rtc_y2k_patch_entry->value[0] == 't' || rtc_y2k_patch_entry->value[0] == 'T') : 1;     // Enabled by default
 
             printf("NTP Server:\t%s:%d\r\n", ntp_server_host, ntp_server_port);
             printf("RTC Type:\t%s\r\n", rtc_type);
             printf("RTC UTC Offset:\t%s\r\n", rtc_utc_offset);
+            printf("Y2K Patch:\t%s\r\n", rtc_y2k_patch_enabled ? "YES" : "NO");
             printf("\r\n");
             printf("Options:\r\n\n");
             printf("[1] - Set SIDECART RTC with a custom firmware\r\n");
@@ -51,6 +55,7 @@ __uint16_t rtc_menu()
             printf("[U] - Change UTC offset\r\n");
             printf("[H] - Change NTP server host\r\n");
             printf("[P] - Change NTP server port\r\n");
+            printf("[Y] - Toogle Y2K fix\r\n");
             printf("\r\n[B] - Boot emulator\r\n");
             printf("\n");
             printf("Press an option key or [ESC] to exit:");
@@ -182,6 +187,22 @@ __uint16_t rtc_menu()
                 send_sync_command(BOOT_RTC, NULL, 0, RTC_WAIT_TIME, FALSE);
                 return 1; // 1 means restart boot
             }
+            // Check if the input is 'Y' or 'y'
+            if ((key == 'Y') || (key == 'y'))
+            {
+                // Toggle network enabled
+                rtc_y2k_patch_enabled = !rtc_y2k_patch_enabled & 0x01;
+                ConfigEntry *entry = (ConfigEntry *)malloc(sizeof(ConfigEntry));
+                strncpy(entry->key, PARAM_RTC_Y2K_PATCH, MAX_KEY_LENGTH);
+                strncpy(entry->value,  rtc_y2k_patch_enabled ? "true" : "false", MAX_STRING_VALUE_LENGTH);
+                entry->dataType = TYPE_BOOL;
+                send_sync_command(PUT_CONFIG_BOOL, entry, sizeof(ConfigEntry), RTC_WAIT_TIME, FALSE);
+                free(entry);
+                send_sync_command(SAVE_CONFIG, NULL, 0, RTC_WAIT_TIME, TRUE);
+                __uint16_t err = read_config();
+                display = TRUE;
+            }
+
             // Check if the input is '1', SIDECART
             if (key == '1')
             {

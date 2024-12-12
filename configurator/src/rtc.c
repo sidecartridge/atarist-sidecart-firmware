@@ -190,7 +190,7 @@ __uint16_t rtc_menu()
             // Check if the input is 'Y' or 'y'
             if ((key == 'Y') || (key == 'y'))
             {
-                // Toggle network enabled
+                // Toggle Y2K patch enabled
                 rtc_y2k_patch_enabled = !rtc_y2k_patch_enabled & 0x01;
                 ConfigEntry *entry = (ConfigEntry *)malloc(sizeof(ConfigEntry));
                 strncpy(entry->key, PARAM_RTC_Y2K_PATCH, MAX_KEY_LENGTH);

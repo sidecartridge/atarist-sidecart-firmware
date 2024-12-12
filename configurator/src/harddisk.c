@@ -8,7 +8,8 @@ static void set_harddisk_config(
     __uint8_t hd_buffer_type,
     __uint8_t hd_rtc,
     __uint8_t hd_timeout,
-    __uint8_t hd_fakefloppy)
+    __uint8_t hd_fakefloppy,
+    __uint8_t y2k_patch)
 {
     ConfigEntry *entry = (ConfigEntry *)malloc(sizeof(ConfigEntry));
     strncpy(entry->key, PARAM_GEMDRIVE_DRIVE, MAX_KEY_LENGTH);
@@ -44,6 +45,14 @@ static void set_harddisk_config(
     entry->dataType = TYPE_BOOL;
     send_sync_command(PUT_CONFIG_STRING, entry, sizeof(ConfigEntry), FLOPPYLOAD_WAIT_TIME, FALSE);
     free(entry);
+
+    entry = (ConfigEntry *)malloc(sizeof(ConfigEntry));
+    strncpy(entry->key, PARAM_RTC_Y2K_PATCH, MAX_KEY_LENGTH);
+    strncpy(entry->value,  y2k_patch ? "true" : "false", MAX_STRING_VALUE_LENGTH);
+    entry->dataType = TYPE_BOOL;
+    send_sync_command(PUT_CONFIG_BOOL, entry, sizeof(ConfigEntry), RTC_WAIT_TIME, FALSE);
+    free(entry);
+
 }
 
 __uint16_t harddisk_menu()
@@ -56,6 +65,7 @@ __uint16_t harddisk_menu()
     ConfigEntry *hd_folders_entry = get_config_entry(PARAM_GEMDRIVE_FOLDERS);
     ConfigEntry *hd_timeout_entry = get_config_entry(PARAM_GEMDRIVE_TIMEOUT_SEC);
     ConfigEntry *hd_fakefloppy_entry = get_config_entry(PARAM_GEMDRIVE_FAKEFLOPPY);
+    ConfigEntry *rtc_y2k_patch_entry = get_config_entry(PARAM_RTC_Y2K_PATCH);
 
     char hd_drive = hd_drive_entry != NULL ? (hd_drive_entry->value[0] >= 'a' && hd_drive_entry->value[0] <= 'z' ? hd_drive_entry->value[0] - 32 : hd_drive_entry->value[0]) : 'C'; // C by default
     __uint8_t hd_buffer_type = hd_buffer_type_entry != NULL ? atoi(hd_buffer_type_entry->value) : 0;                                                                                // _dskbuff by default
@@ -64,6 +74,8 @@ __uint16_t harddisk_menu()
     __uint8_t hd_fakefloppy = hd_fakefloppy_entry != NULL ? (hd_fakefloppy_entry->value[0] == 't' || hd_fakefloppy_entry->value[0] == 'T') : 1; // Enabled by default
     char *hd_folders = malloc(MAX_FOLDER_LENGTH);
     strcpy(hd_folders, (hd_folders_entry != NULL ? hd_folders_entry->value : "/hd"));
+    __uint8_t rtc_y2k_patch_enabled = rtc_y2k_patch_entry != NULL ? (rtc_y2k_patch_entry->value[0] == 't' || rtc_y2k_patch_entry->value[0] == 'T') : 1;     // Enabled by default
+
 
     while (TRUE)
     {
@@ -89,6 +101,9 @@ __uint16_t harddisk_menu()
             printf("[D]rive:\t\t%c:\\ \r\n", hd_drive);
             printf("Temp [M]emory type:\t%s\r\n", hd_buffer_type == 0 ? "_dskbuf" : "heap");
             printf("[R]TC enabled:\t\t%s\tNeeds WiFi to access a NTP server\r\n", hd_rtc ? "YES" : "NO");
+            if (hd_rtc) {
+                printf("[Y]2K Patch:\t\t%s\tApply Y2K to the RTC date\r\n", rtc_y2k_patch_enabled ? "YES" : "NO");
+            }
             printf("[F]ake Floppy:\t\t%s\tEnable AUTO folder execution without floppies\r\n", hd_fakefloppy ? "YES" : "NO");
             printf("Network [T]imeout:\t%dsec\r\n", hd_timeout);
             printf("\r\n");
@@ -131,7 +146,7 @@ __uint16_t harddisk_menu()
                 {
                     hd_drive = 'C';
                 }
-                set_harddisk_config(hd_drive, hd_buffer_type, hd_rtc, hd_timeout, hd_fakefloppy);
+                set_harddisk_config(hd_drive, hd_buffer_type, hd_rtc, hd_timeout, hd_fakefloppy, rtc_y2k_patch_enabled);
                 config_changed = TRUE;
                 display = TRUE;
             }
@@ -140,7 +155,7 @@ __uint16_t harddisk_menu()
             {
                 // Toggle floppy buffer type
                 hd_buffer_type = !hd_buffer_type & 0x01;
-                set_harddisk_config(hd_drive, hd_buffer_type, hd_rtc, hd_timeout, hd_fakefloppy);
+                set_harddisk_config(hd_drive, hd_buffer_type, hd_rtc, hd_timeout, hd_fakefloppy, rtc_y2k_patch_enabled);
                 display = TRUE;
                 config_changed = TRUE;
             }
@@ -148,7 +163,7 @@ __uint16_t harddisk_menu()
             {
                 // Toggle RTC
                 hd_rtc = !hd_rtc & 0x01;
-                set_harddisk_config(hd_drive, hd_buffer_type, hd_rtc, hd_timeout, hd_fakefloppy);
+                set_harddisk_config(hd_drive, hd_buffer_type, hd_rtc, hd_timeout, hd_fakefloppy, rtc_y2k_patch_enabled);
                 display = TRUE;
                 config_changed = TRUE;
             }
@@ -161,7 +176,7 @@ __uint16_t harddisk_menu()
                 {
                     hd_timeout = 45;
                 }
-                set_harddisk_config(hd_drive, hd_buffer_type, hd_rtc, hd_timeout, hd_fakefloppy);
+                set_harddisk_config(hd_drive, hd_buffer_type, hd_rtc, hd_timeout, hd_fakefloppy, rtc_y2k_patch_enabled);
                 config_changed = TRUE;
                 display = TRUE;
             }
@@ -169,7 +184,7 @@ __uint16_t harddisk_menu()
             {
                 // Toggle Fake floppy
                 hd_fakefloppy = !hd_fakefloppy & 0x01;
-                set_harddisk_config(hd_drive, hd_buffer_type, hd_rtc, hd_timeout, hd_fakefloppy);
+                set_harddisk_config(hd_drive, hd_buffer_type, hd_rtc, hd_timeout, hd_fakefloppy, rtc_y2k_patch_enabled);
                 display = TRUE;
                 config_changed = TRUE;
             }
@@ -184,6 +199,15 @@ __uint16_t harddisk_menu()
                 }
                 send_sync_command(BOOT_GEMDRIVE, NULL, 0, FLOPPYLOAD_WAIT_TIME, FALSE);
                 return 1; // Positive is OK
+            }
+            // Check if the input is 'Y' or 'y'
+            else if (hd_rtc &&  ((key == 'Y') || (key == 'y')))
+            {
+                // Toggle Y2K patch enabled
+                rtc_y2k_patch_enabled = !rtc_y2k_patch_enabled & 0x01;
+                set_harddisk_config(hd_drive, hd_buffer_type, hd_rtc, hd_timeout, hd_fakefloppy, rtc_y2k_patch_enabled);
+                display = TRUE;
+                config_changed = TRUE;
             }
             else
             {

@@ -64,12 +64,17 @@ static __uint8_t get_floppy_size_input()
     {
         flush_kbd();
         input = Cnecin();
-        // Check for '1', '2', '3', or ESC key
+        // Check for '1', '2', '3', 'C' or 'c' and ESC key
         if (input == '1' || input == '2' || input == '3')
         {
             __uint8_t opt = (input - '1') + 1;
             printf("%d", opt);
             return opt; // Return the valid input
+        }
+        else if (input == 'C' || input == 'c')
+        {
+            printf("C");
+            return 4; // Return 4 to indicate Custom floppy size
         }
         else if (input == 27)
         {
@@ -362,15 +367,26 @@ __uint16_t floppy_menu()
                 // Format a floppy image
                 // Create a new floppy image. Ask for parameters
                 printf("\r\033KSize [1]-SS/DD (360KB), [2]-DS/DD (720KB), [3]-HD (1.44MB). [ESC] exit: ");
+//                printf("\r\033KSize [1]-SS/DD (360KB), [2]-DS/DD (720KB), [3]-HD (1.44MB), [C]ustom. [ESC] exit: ");
                 __uint8_t floppy_type = get_floppy_size_input();
 
                 if (floppy_type != 0)
                 {
+                    __uint16_t floppy_num_tracks = floppy_type >= 2 ? 80 : 40;
+                    __uint16_t floppy_num_sectors = floppy_type > 2 ? 18 : 9;
+                    __uint16_t floppy_num_sides = floppy_type >= 2 ? 2 : 1;
+                    if (floppy_type == 4) {
+                        floppy_num_tracks = 80 * 4;
+                        floppy_num_sectors = 18;
+                        floppy_num_sides = 2;
+                        // With 512 bytes per sector
+                        printf("\r\033KTracks: %d, Sectors: %d, Sides: %d, 512b/sector. Total=%dKB\r\n", floppy_num_tracks, floppy_num_sectors, floppy_num_sides, (floppy_num_tracks * floppy_num_sectors * floppy_num_sides * 512) / 1024);
+                    }
                     FloppyImageHeader floppy_header = {
                         .template = floppy_type,
-                        .num_tracks = floppy_type >= 2 ? 80 : 40,
-                        .num_sectors = floppy_type > 2 ? 18 : 9,
-                        .num_sides = floppy_type >= 2 ? 2 : 1,
+                        .num_tracks = floppy_num_tracks,
+                        .num_sectors = floppy_num_sectors,
+                        .num_sides = floppy_num_sides,
                         .overwrite = 1,
                         .volume_name = "",
                         .floppy_name = ""};

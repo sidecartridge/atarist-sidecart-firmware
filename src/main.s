@@ -51,6 +51,8 @@ second:
 
 pre_auto:
 ; Print welcome message
+	move.l a0,d5
+
 	pea welcome(pc)
 	move.w #9,-(sp)
 	trap #1
@@ -106,7 +108,6 @@ boot_gem:
 adjust_mem:
 	move.l    $432.w,a3		; Membot
     move.l    $436.w,a4		; Memtop
-
     move.w    #$0300,sr		; Set user mode
 
 ; Stack initialization (set to top of memory)
@@ -206,10 +207,17 @@ run_configurator_avoid_p_pointer:
 	clr.l (a4)+
 	dbf d7, .zero_bss
 
-	jmp (a1)
+grace:
+	move.w #$AA55,d0
+	cmp.l #pre_auto,d5
+	beq run_prg
+	sub.w d0,d0
+run_prg:
+	move.w d0,$1000        ; Push boot_flag parameter
+        jmp (a1)               ; Call main() in hello.tos
 
 welcome:
-	dc.b "SidecarTridge Multi-device "
+	dc.b "AtaBus STM32 "
 	dc.b    "v"
 	dc.b    VERSION_MAJOR
 	dc.b    "."
@@ -231,7 +239,6 @@ countdown:
 	dc.b "2",8,0
 	dc.b "1",8,0
 	dc.b "0",8,0
-
 
   even
 

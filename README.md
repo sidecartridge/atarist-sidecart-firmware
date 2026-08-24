@@ -2,6 +2,8 @@
 
 This repository hosts the firmware code for the Sidecart ROM Emulator designed for Atari ST/STE/Mega systems. In tandem with the [Sidecart Raspberry Pico firmware](https://github.com/sidecartridge/atarist-sidecart-raspberry-pico), this firmware facilitates the functioning of the Sidecart ROM Emulator.
 
+> 🛒 **Get the hardware:** [SidecarTridge Multi-device](https://sidecartridge.com/products/sidecartridge-multidevice-atari-st/)
+
 ## Introduction
 
 The Sidecart ROM Emulator mimics the behavior of Atari ST cartridges and their contained ROM memory. The code in this repository prepares the emulator to operate as a classic TOS Atari ST application.
